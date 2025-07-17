@@ -1,0 +1,136 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "SmsKpnPost": {
+                "type": "Workflow",
+                "inputs": {
+                    "host": {
+                        "workflow": {
+                            "id": "json-s-post-sms-gen-kpn-wf"
+                        }
+                    },
+                    "body": {
+                        "caseid": "@{triggerBody()['caseid']}",
+                        "mobilephones": "@triggerBody()['mobilephones']",
+                        "operator": "@{triggerBody()?['operator']}",
+                        "smsmessage": "@{triggerBody()['smsmessage']}",
+                        "source": "@{triggerBody()['source']}"
+                    },
+                    "retryPolicy": {
+                        "type": "none"
+                    }
+                },
+                "runAfter": {},
+                "trackedProperties": {
+                    "action": "send",
+                    "destination": "SMS",
+                    "reference_number": "",
+                    "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2Fdev-as-is-rg%2Fproviders%2FMicrosoft.Web%2Fsites%2Fdev-ticket-shared-la%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                    "source": "@{triggerBody()['source']}",
+                    "ticket_number": "@{triggerBody()['caseid']}"
+                }
+            },
+            "TechnicalError": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "not": {
+                                "equals": [
+                                    "@body('SmsKpnPost')['code']",
+                                    "FunctionalEndpointSuccess"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "actions": {
+                    "TechnicalEndpointFailureResponse": {
+                        "inputs": {
+                            "body": {
+                                "error": {
+                                    "code": "TechnicalEndpointFailure",
+                                    "message": "Error in processing messages"
+                                }
+                            },
+                            "statusCode": 500
+                        },
+                        "kind": "Http",
+                        "runAfter": {},
+                        "type": "Response"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "FunctionalEndpointSuccessResponse": {
+                            "inputs": {
+                                "body": {
+                                    "result": {
+                                        "code": "FunctionalEndpointSuccess",
+                                        "message": "SMS message(s) processed"
+                                    }
+                                },
+                                "statusCode": "@outputs('SmsKpnPost')['statusCode']"
+                            },
+                            "kind": "Http",
+                            "runAfter": {},
+                            "type": "Response"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "SmsKpnPost": [
+                        "Succeeded",
+                        "Failed",
+                        "TimedOut"
+                    ]
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "rest-r-post-sms-wf": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "caseid": {
+                                "type": "string"
+                            },
+                            "mobilephones": {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            "operator": {
+                                "type": "string"
+                            },
+                            "smsmessage": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "source",
+                            "mobilephones",
+                            "smsmessage",
+                            "caseid"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "operationOptions": "EnableSchemaValidation",
+                "correlation": {
+                    "clientTrackingId": "@{concat(triggerBody()?['caseid'],'__',guid())}"
+                }
+            }
+        }
+    },
+    "kind": "Stateful"
+}
