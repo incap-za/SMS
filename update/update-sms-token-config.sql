@@ -1,3 +1,4 @@
+-- Configuration for workflow sms-post-kpnsms-wf in Logic App dev-api-ticket-la
 DECLARE @Environment CHAR(3), @ResponseStructureToken NVARCHAR(MAX), @Destination NVARCHAR(50), @EnvAuthBaseUrl NVARCHAR(MAX), @EnvAuthClientId NVARCHAR(MAX), @KeyvaultEntry NVARCHAR(MAX), @KeyvaultTokenEntry NVARCHAR(MAX), @MapName NVARCHAR(MAX)
 SET @Environment = (SELECT  
 						CASE DB_NAME()
