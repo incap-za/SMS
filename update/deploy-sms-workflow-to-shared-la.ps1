@@ -46,9 +46,9 @@ Set-AzContext -SubscriptionId $SubscriptionId
 
 # Variables
 $ResourceGroupName = "$Environment-as-is-rg"
-$SharedLogicAppName = "$Environment-ticket-shared-la"
-$WorkflowName = "rest-r-post-sms-wf"
-$WorkflowFilePath = "$GitDirectory\LogicApps\ticket-shared-la\workflows\$WorkflowName.json"
+$SharedLogicAppName = "dev-api-ticket-la"
+$WorkflowName = "sms-post-kpnsms-wf"
+$WorkflowFilePath = "$GitDirectory\LogicApps\dev-api-ticket-la\workflows\$WorkflowName.json"
 
 Write-Host "Deploying SMS workflow to shared Logic App..." -ForegroundColor Green
 Write-Host "Environment: $Environment"
