@@ -1,0 +1,78 @@
+{% comment %} 
+################################################################################################# 
+# Variable declaration 
+#################################################################################################
+{% endcomment %}
+{% assign inputBaseUrl = content.baseUrl %}
+{% assign inputMessage = content.message %}
+{% assign inputTicketAttributes = inputMessage.ticket_attributes %}
+
+{% comment %}Common variables {% endcomment %}
+{% assign inputProcessType = content.process_type %}
+{% assign inputState = inputMessage.state %}
+{% assign inputTicketNumber = inputMessage.ticket_number %}
+
+{% comment %} 
+################################################################################################# 
+# ProcessType specific Code & Variable declaration 
+################################################################################################# 
+{% endcomment %}
+{% case inputMessage.process_type %}
+{% comment %} 
+################################################################################################# 
+# Incident-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'new_call' %}
+        {% if content.environment == 'prd' %}
+            {% assign flow = 'b013de75-d223-4392-b145-000889d6aa7b' %}
+        {% else %}
+            {% assign flow = '6ad44b5c-6991-4e84-a069-2efa94e5f7db' %}
+        {% endif %}
+
+        {% capture requestBodyText %}
+            {
+                "flowId": "{{flow}}",
+                "provider": "KPN SNOW",
+                "attributes": {
+                    "assignment_group": "{{inputTicketAttributes.assignment_group}}"
+                },
+                "fromAddress": "{{inputTicketAttributes.from}}",
+                "fromName": "{{inputTicketAttributes.company}}",
+                "subject": "{{inputTicketNumber}}",
+                "textBody": "{{inputTicketAttributes.short_description}}"
+            }
+        {% endcapture %}
+    {% else %} {% comment %} interaction {% endcomment %}
+    {% comment %}
+        pending extention of the configuration choice list
+                {% capture requestBodyText %}
+            {
+                "flowId": "b013de75-d223-4392-b145-000889d6aa7b",
+                "provider": "KPN SNOW",
+                "attributes": {
+                    "assignment_group": "{{inputTicketAttributes.assignment_group}}"
+                },
+                "fromAddress": "{{inputTicketAttributes.from}}",
+                "fromName": "{{inputTicketAttributes.company}}",
+                "subject": "{{inputTicketNumber}}",
+                "textBody": "{{inputTicketAttributes.short_description}}"
+            }
+        {% endcapture %}
+    {% endcomment %}
+{% endcase %}
+{% comment %} 
+################################################################################################# 
+# Liquid output JSON message 
+#################################################################################################
+{% endcomment %}
+{
+    "fullUrl": "{{ inputBaseUrl }}",
+    "httpMethod":"POST",
+	"headers": {
+        "Content-Type": "application/json"
+    },
+	"attType": "{{attType}}",
+    "requestBody": {{requestBodyText}},
+	"outputAction": "{{outputAction}}"
+}
