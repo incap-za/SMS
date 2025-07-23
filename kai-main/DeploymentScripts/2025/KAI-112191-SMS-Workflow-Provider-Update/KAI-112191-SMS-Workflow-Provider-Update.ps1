@@ -40,7 +40,7 @@ CD "$GitDirectory\Deployment\SQLDeployment"
 if($GitDirectory -ne "C:\src\repositories\kai-main"){
     # SQL SCRIPT
     # To KAI-DB
-    .\Deploy-SQL -Environment $Environment -SqlScriptPath "$GitDirectory\DeploymentScripts\2025\SMS-Migration\update-sms-token-config.sql"
+    .\Deploy-SQL -Environment $Environment -SqlScriptPath "$GitDirectory\DeploymentScripts\2025\KAI-112191-SMS-Workflow-Provider-Update\sms-token-config.sql"
 }
 
 CD "$GitDirectory\Deployment\LogicApps"
