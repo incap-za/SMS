@@ -35,18 +35,18 @@ if($BranchName){
     Write-Host("BRANCH: '$BranchName'")
 }
 
-# Set subscription based on environment
+# Set subscription based on environment - REPLACE WITH ACTUAL IDs
 $SubscriptionId = switch ($Environment) {
-    "dev" { "your-dev-subscription-id" }
-    "acc" { "your-acc-subscription-id" }
-    "prd" { "your-prd-subscription-id" }
+    "dev" { "REPLACE-WITH-DEV-SUBSCRIPTION-ID" }
+    "acc" { "REPLACE-WITH-ACC-SUBSCRIPTION-ID" }
+    "prd" { "REPLACE-WITH-PRD-SUBSCRIPTION-ID" }
 }
 
 Set-AzContext -SubscriptionId $SubscriptionId
 
 # Variables
 $ResourceGroupName = "$Environment-as-is-rg"
-$SharedLogicAppName = "dev-api-ticket-la"
+$SharedLogicAppName = "dev-api-ticket-la"  # Using the correct Logic App name
 $WorkflowName = "sms-post-kpnsms-wf"
 $WorkflowFilePath = "$GitDirectory\LogicApps\dev-api-ticket-la\workflows\$WorkflowName.json"
 
@@ -56,8 +56,8 @@ Write-Host "Resource Group: $ResourceGroupName"
 Write-Host "Logic App: $SharedLogicAppName"
 Write-Host "Workflow: $WorkflowName"
 
-# Check if Logic App exists
-$LogicApp = Get-AzLogicApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName -ErrorAction SilentlyContinue
+# Check if Logic App (Standard) exists
+$LogicApp = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName -ErrorAction SilentlyContinue
 if ($null -eq $LogicApp) {
     Write-Error "Logic App '$SharedLogicAppName' not found in resource group '$ResourceGroupName'"
     exit 1
@@ -71,46 +71,64 @@ if (Test-Path $WorkflowFilePath) {
     exit 1
 }
 
-# Deploy workflow to shared Logic App
+# Deploy workflow to Logic App Standard
 try {
-    # Create or update workflow
-    $apiVersion = "2019-05-01"
-    $resourceId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Logic/workflows/$SharedLogicAppName/versions/$WorkflowName"
-    
-    # Use Azure REST API to deploy workflow
-    $token = (Get-AzAccessToken).Token
+    # Get access token
+    $token = (Get-AzAccessToken -ResourceUrl "https://management.azure.com/").Token
     $headers = @{
         'Authorization' = "Bearer $token"
         'Content-Type' = 'application/json'
     }
     
-    $uri = "https://management.azure.com$resourceId`?api-version=$apiVersion"
+    # Construct the correct URI for Logic App Standard workflow
+    $apiVersion = "2022-03-01"
+    $baseUri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Web/sites/$SharedLogicAppName"
     
-    $body = @{
-        properties = @{
-            definition = $WorkflowDefinition.definition
-            parameters = @{}
-            state = "Enabled"
+    # First, ensure the workflow folder exists
+    $workflowFolderUri = "$baseUri/hostruntime/runtime/webhooks/workflow/api/management/workflows/$WorkflowName`?api-version=$apiVersion"
+    
+    # Create workflow body
+    $workflowBody = @{
+        "id" = $WorkflowName
+        "name" = $WorkflowName
+        "type" = "Microsoft.Logic/workflows"
+        "kind" = $WorkflowDefinition.kind
+        "properties" = @{
+            "flowState" = if ($WorkflowDefinition.properties.state) { $WorkflowDefinition.properties.state } else { "Enabled" }
+            "definition" = $WorkflowDefinition.definition
+            "parameters" = if ($WorkflowDefinition.properties.parameters) { $WorkflowDefinition.properties.parameters } else { @{} }
         }
-        kind = $WorkflowDefinition.kind
     } | ConvertTo-Json -Depth 100
     
-    $response = Invoke-RestMethod -Uri $uri -Method Put -Headers $headers -Body $body
+    # Deploy the workflow
+    $response = Invoke-RestMethod -Uri $workflowFolderUri -Method Put -Headers $headers -Body $workflowBody
     
     Write-Host "Workflow '$WorkflowName' deployed successfully!" -ForegroundColor Green
+    
 } catch {
     Write-Error "Failed to deploy workflow: $_"
+    Write-Error "Response: $($_.Exception.Response.Content.ReadAsStringAsync().Result)"
     exit 1
 }
 
 # Update App Settings for the shared Logic App
 Write-Host "Updating App Settings..." -ForegroundColor Yellow
 
+# Environment-specific KPN SMS API settings
+$KpnSmsClientId = switch ($Environment) {
+    "dev" { "sms-api-dev-client-id" }  # Replace with actual client IDs
+    "acc" { "sms-api-acc-client-id" }
+    "prd" { "sms-api-prd-client-id" }
+}
+
 $AppSettings = @{
-    "KpnSmsClientId" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/kpn-sms-client-id/)"
+    "KpnSmsClientId" = $KpnSmsClientId
     "KpnSmsClientSecret" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/kpn-sms-client-secret/)"
     "KeyVaultUrl" = "https://$Environment-kv.vault.azure.net"
     "SmsWebhookUrl" = "" # Set if webhook notifications are needed
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/storage-connection-string/)"
+    "WEBSITE_CONTENTSHARE" = $SharedLogicAppName
+    "AzureWebJobsStorage" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/storage-connection-string/)"
 }
 
 # Get existing app settings
@@ -123,7 +141,7 @@ foreach ($setting in $existingAppSettings) {
     $appSettingsHashtable[$setting.Name] = $setting.Value
 }
 
-# Add new settings
+# Add/update new settings
 foreach ($key in $AppSettings.Keys) {
     $appSettingsHashtable[$key] = $AppSettings[$key]
 }
@@ -133,7 +151,24 @@ Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName -Ap
 
 Write-Host "App Settings updated successfully!" -ForegroundColor Green
 
-# Deploy API Management update if needed
+# Create or update connections.json if needed
+Write-Host "Checking workflow connections..." -ForegroundColor Yellow
+
+$connectionsPath = "$GitDirectory\LogicApps\dev-api-ticket-la\connections.json"
+if (Test-Path $connectionsPath) {
+    Write-Host "Connections.json found, no update needed." -ForegroundColor Green
+} else {
+    Write-Host "Creating connections.json..." -ForegroundColor Yellow
+    $connections = @{
+        "managedApiConnections" = @{}
+        "serviceProviderConnections" = @{}
+    } | ConvertTo-Json -Depth 10
+    
+    New-Item -Path $connectionsPath -ItemType File -Value $connections -Force
+    Write-Host "Connections.json created." -ForegroundColor Green
+}
+
+# Deploy API Management update
 CD "$GitDirectory\Deployment\APIManagement"
 Write-Host "Updating API Management configuration..." -ForegroundColor Yellow
 .\DeployApi -Environment $Environment -SwaggerFileName "sms-kpn-rest-api.json"
