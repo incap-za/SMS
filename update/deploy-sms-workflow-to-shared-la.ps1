@@ -1,7 +1,7 @@
 #======================================================================
 # Author:      KPN Integration Team
-# Date:        ${date}
-# Description: Deploy SMS workflow to shared Logic App in ASE
+# Date:        2025-01-23
+# Description: Deploy SMS API migration from Vonage to KPN SMS provider
 #======================================================================
 
 param(
@@ -35,142 +35,50 @@ if($BranchName){
     Write-Host("BRANCH: '$BranchName'")
 }
 
-# Set subscription based on environment - REPLACE WITH ACTUAL IDs
-$SubscriptionId = switch ($Environment) {
-    "dev" { "REPLACE-WITH-DEV-SUBSCRIPTION-ID" }
-    "acc" { "REPLACE-WITH-ACC-SUBSCRIPTION-ID" }
-    "prd" { "REPLACE-WITH-PRD-SUBSCRIPTION-ID" }
+# Deploy SQL Token Configuration, only via pipeline
+CD "$GitDirectory\Deployment\SQLDeployment"
+if($GitDirectory -ne "C:\src\repositories\kai-main"){
+    Write-Host "Deploying SMS Token Configuration to KAI-DB..." -ForegroundColor Green
+    .\Deploy-SQL -Environment $Environment -SqlScriptPath "$GitDirectory\DeploymentScripts\2025\SMS-Migration\update-sms-token-config.sql"
 }
 
-Set-AzContext -SubscriptionId $SubscriptionId
-
-# Variables
-$ResourceGroupName = "$Environment-as-is-rg"
+CD "$GitDirectory\Deployment\LogicApps"
+# Deploy workflow to existing shared Logic App
 $SharedLogicAppName = "$Environment-api-ticket-la"
-$WorkflowName = "sms-post-kpnsms-wf"
-$WorkflowFilePath = "$GitDirectory\LogicApps\$Environment-api-ticket-la\workflows\$WorkflowName.json"
+Write-Host "Deploying SMS workflow 'sms-post-kpnsms-wf' to shared Logic App '$SharedLogicAppName'..." -ForegroundColor Green
 
-Write-Host "Deploying SMS workflow to shared Logic App..." -ForegroundColor Green
-Write-Host "Environment: $Environment"
-Write-Host "Resource Group: $ResourceGroupName"
-Write-Host "Logic App: $SharedLogicAppName"
-Write-Host "Workflow: $WorkflowName"
+# Deploy the workflow to the existing Logic App
+.\DeployWF -Environment $Environment -LogicAppFolder $SharedLogicAppName -BranchName $BranchName
 
-# Check if Logic App (Standard) exists
-$LogicApp = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName -ErrorAction SilentlyContinue
-if ($null -eq $LogicApp) {
-    Write-Error "Logic App '$SharedLogicAppName' not found in resource group '$ResourceGroupName'"
-    exit 1
-}
+# Note: No need to deploy the Logic App itself or App Settings as it already exists
+# The shared Logic App should already have the necessary settings for token service
 
-# Read workflow definition
-if (Test-Path $WorkflowFilePath) {
-    $WorkflowDefinition = Get-Content $WorkflowFilePath -Raw | ConvertFrom-Json
-} else {
-    Write-Error "Workflow file not found at: $WorkflowFilePath"
-    exit 1
-}
-
-# Deploy workflow to Logic App Standard
-try {
-    # Get access token
-    $token = (Get-AzAccessToken -ResourceUrl "https://management.azure.com/").Token
-    $headers = @{
-        'Authorization' = "Bearer $token"
-        'Content-Type' = 'application/json'
-    }
-    
-    # Construct the correct URI for Logic App Standard workflow
-    $apiVersion = "2022-03-01"
-    $baseUri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Web/sites/$SharedLogicAppName"
-    
-    # First, ensure the workflow folder exists
-    $workflowFolderUri = "$baseUri/hostruntime/runtime/webhooks/workflow/api/management/workflows/$WorkflowName`?api-version=$apiVersion"
-    
-    # Create workflow body
-    $workflowBody = @{
-        "id" = $WorkflowName
-        "name" = $WorkflowName
-        "type" = "Microsoft.Logic/workflows"
-        "kind" = $WorkflowDefinition.kind
-        "properties" = @{
-            "flowState" = if ($WorkflowDefinition.properties.state) { $WorkflowDefinition.properties.state } else { "Enabled" }
-            "definition" = $WorkflowDefinition.definition
-            "parameters" = if ($WorkflowDefinition.properties.parameters) { $WorkflowDefinition.properties.parameters } else { @{} }
-        }
-    } | ConvertTo-Json -Depth 100
-    
-    # Deploy the workflow
-    $response = Invoke-RestMethod -Uri $workflowFolderUri -Method Put -Headers $headers -Body $workflowBody
-    
-    Write-Host "Workflow '$WorkflowName' deployed successfully!" -ForegroundColor Green
-    
-} catch {
-    Write-Error "Failed to deploy workflow: $_"
-    Write-Error "Response: $($_.Exception.Response.Content.ReadAsStringAsync().Result)"
-    exit 1
-}
-
-# Update App Settings for the shared Logic App
-Write-Host "Updating App Settings..." -ForegroundColor Yellow
-
-# Environment-specific KPN SMS API settings
-$KpnSmsClientId = switch ($Environment) {
-    "dev" { "sms-api-dev-client-id" }  # Replace with actual client IDs
-    "acc" { "sms-api-acc-client-id" }
-    "prd" { "sms-api-prd-client-id" }
-}
-
-$AppSettings = @{
-    "KpnSmsClientId" = $KpnSmsClientId
-    "KpnSmsClientSecret" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/kpn-sms-client-secret/)"
-    "KeyVaultUrl" = "https://$Environment-kv.vault.azure.net"
-    "SmsWebhookUrl" = "" # Set if webhook notifications are needed
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/storage-connection-string/)"
-    "WEBSITE_CONTENTSHARE" = $SharedLogicAppName
-    "AzureWebJobsStorage" = "@Microsoft.KeyVault(SecretUri=https://$Environment-kv.vault.azure.net/secrets/storage-connection-string/)"
-}
-
-# Get existing app settings
-$webapp = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName
-$existingAppSettings = $webapp.SiteConfig.AppSettings
-
-# Convert to hashtable
-$appSettingsHashtable = @{}
-foreach ($setting in $existingAppSettings) {
-    $appSettingsHashtable[$setting.Name] = $setting.Value
-}
-
-# Add/update new settings
-foreach ($key in $AppSettings.Keys) {
-    $appSettingsHashtable[$key] = $AppSettings[$key]
-}
-
-# Update app settings
-Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $SharedLogicAppName -AppSettings $appSettingsHashtable
-
-Write-Host "App Settings updated successfully!" -ForegroundColor Green
-
-# Create or update connections.json if needed
-Write-Host "Checking workflow connections..." -ForegroundColor Yellow
-
-$connectionsPath = "$GitDirectory\LogicApps\$Environment-api-ticket-la\connections.json"
-if (Test-Path $connectionsPath) {
-    Write-Host "Connections.json found, no update needed." -ForegroundColor Green
-} else {
-    Write-Host "Creating connections.json..." -ForegroundColor Yellow
-    $connections = @{
-        "managedApiConnections" = @{}
-        "serviceProviderConnections" = @{}
-    } | ConvertTo-Json -Depth 10
-    
-    New-Item -Path $connectionsPath -ItemType File -Value $connections -Force
-    Write-Host "Connections.json created." -ForegroundColor Green
-}
-
-# Deploy API Management update
+# Deploy SMS API to API Management (if needed)
 CD "$GitDirectory\Deployment\APIManagement"
-Write-Host "Updating API Management configuration..." -ForegroundColor Yellow
-.\DeployApi -Environment $Environment -SwaggerFileName "sms-kpn-rest-api.json"
+Write-Host "Checking SMS API in API Management..." -ForegroundColor Yellow
 
-Write-Host "Deployment completed successfully!" -ForegroundColor Green
+# Check if we need to update the API or if it's already pointing to the correct endpoint
+# The API name 'sms-kpn-rest-api' might already exist pointing to the current Vonage implementation
+# In DEV, we might want to create a new version or update the existing one
+
+if ($Environment -eq "dev") {
+    Write-Host "In DEV environment - API Management update will be handled separately" -ForegroundColor Yellow
+    Write-Host "The existing SMS API in APIM still points to the current implementation" -ForegroundColor Yellow
+    Write-Host "Once testing is complete, update the APIM backend to point to the new workflow" -ForegroundColor Yellow
+} else {
+    # For ACC/PRD deployment after DEV testing is complete
+    Write-Host "Updating SMS API in API Management..." -ForegroundColor Green
+    .\DeployApi -Environment $Environment -SwaggerFileName "sms-kpn-rest-api.json"
+}
+
+Write-Host "SMS API Migration deployment completed successfully!" -ForegroundColor Green
+Write-Host "Workflow 'sms-post-kpnsms-wf' deployed to Logic App '$SharedLogicAppName'" -ForegroundColor Green
+
+if ($Environment -eq "dev") {
+    Write-Host "" -ForegroundColor Yellow
+    Write-Host "IMPORTANT: Next steps for DEV testing:" -ForegroundColor Yellow
+    Write-Host "1. The new workflow is deployed but not yet connected to APIM" -ForegroundColor Yellow
+    Write-Host "2. Test the workflow directly using the Logic App endpoint" -ForegroundColor Yellow
+    Write-Host "3. Once testing is successful, update APIM to point to the new workflow" -ForegroundColor Yellow
+    Write-Host "4. Both Vonage and KPN SMS implementations are currently active" -ForegroundColor Yellow
+}
