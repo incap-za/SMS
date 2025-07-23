@@ -1,0 +1,715 @@
+{
+    "wfparameters":{
+        "logicappName": {
+            "type": "String",
+            "value": "{{env}}-ticket-shared-la"
+        },
+        "resourceGroup": {
+            "type": "String",
+            "value": "{{env}}-ticket-rg"
+        }  
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "EndRun": {
+                "inputs": {
+                    "runStatus": "Succeeded"
+                },
+                "runAfter": {
+                    "Response": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Terminate"
+            },
+            "EndRunKaiEvent": {
+                "inputs": {
+                    "runStatus": "Succeeded"
+                },
+                "runAfter": {
+                    "ScopeTransformFailureResponse": [
+                        "SUCCEEDED",
+                        "FAILED",
+                        "TIMEDOUT"
+                    ]
+                },
+                "type": "Terminate"
+            },
+            "KaiEvent": {
+                "inputs": {
+                    "body": {
+                        "callbackurl": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                        "errordescription": "Action ResponseData failed\nDescription:  @{actions('ResponseData')?['error']}",
+                        "errortype": "Transformation Failure",
+                        "logicapp": "{{logicappName}}",
+                        "message_key": "ASE:@{triggerBody()['source']}:@{triggerBody()['destination']}:ticket:gen",
+                        "resourcegroup": "{{resourceGroup}}",
+                        "runID": "@{workflow()['run']['name']}",
+                        "severity": "2",
+                        "source": "@{triggerBody()['source']}",
+                        "workflow": "@{workflow()['name']}"
+                    },
+                    "host": {
+                        "workflow": {
+                            "id": "errorlog-wf"
+                        }
+                    },
+                    "retryPolicy": {
+                        "type": "none"
+                    }
+                },
+                "runAfter": {
+                    "ResponseData": [
+                        "FAILED",
+                        "TIMEDOUT"
+                    ]
+                },
+                "type": "Workflow"
+            },
+            "Response": {
+                "inputs": {
+                    "body": "@outputs('ResponseData')?['body']",
+                    "headers": {
+                        "AppRunlink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}"
+                    },
+                    "statusCode": "@outputs('ResponseData')?['statusCode']"
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "ResponseData": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Response"
+            },
+            "ResponseData": {
+                "inputs": {
+                    "code": "var response = {};\r\nvar httpResponse = {};\r\nvar actionArray = [];\r\nvar responseStr = JSON.parse(workflowContext.trigger.outputs.body.responseStructure);\r\nresponse.body = {};\r\n\r\n//get all lowest actions\r\nactionArray.push(workflowContext.actions.SendJson1);\r\nactionArray.push(workflowContext.actions.SendJson2);\r\nactionArray.push(workflowContext.actions.SendMultipart1);\r\nactionArray.push(workflowContext.actions.SendMultipart2);\r\nactionArray.push(workflowContext.actions.SendEmail);\r\nactionArray.push(workflowContext.actions.ConfirmAttachment);\r\nactionArray.push(workflowContext.actions.SendOAuthAtt);\r\nactionArray.push(workflowContext.actions.VWTSendAttachment);\r\nactionArray.push(workflowContext.actions.SendGeldmaatAtt);\r\nhttpResponse = actionExecution(actionArray);\r\n\r\nif(JSON.stringify(httpResponse)==='{}'){\r\n    actionArray = [];\r\n    //get higher actions\r\n    actionArray.push(workflowContext.actions.GetAttSysID);\r\n    actionArray.push(workflowContext.actions.GetAttID);\r\n    actionArray.push(workflowContext.actions.PostTemporaryAttachment);\r\n    actionArray.push(workflowContext.actions.GetToken);\r\n    httpResponse = actionExecution(actionArray);\r\n}\r\n\r\n//test functionalSuccess\r\nif(funcConstructor(responseStr.functionalSuccess.condition, httpResponse))\r\n{\r\n    response.body.result = {};\r\n    response.statusCode = 200;\r\n    response.body.result.ticket_number = workflowContext.trigger.outputs.body.ticket_number; \r\n    response.body.result.reference_number = workflowContext.trigger.outputs.body.reference_number;\r\n    response.body.result.note = response.body.result.ticket_number + \" processed successfully\"; \r\n    response.body.result.state = \"\";\r\n    response.body.result.source = workflowContext.trigger.outputs.body.destination;\r\n}\r\n//test functionalFailure\r\nelse if(funcConstructor(responseStr.functionalFailure.condition, httpResponse)){\r\n    response.body.error = {};\r\n    response.statusCode = 400;\r\n    response.body.error.code = \"FunctionalEndpointFailure\";\r\n    response.body.error.message = funcConstructor(responseStr.functionalFailure.error, httpResponse); \r\n}\r\nelse {\r\n    response.body.error = {};\r\n    response.statusCode = 500;\r\n    response.body.error.code = \"TechnicalEndpointFailure\";    \r\n    response.body.error.message = funcConstructor(responseStr.technicalFailure.error, httpResponse); \r\n}\r\n\r\nfunction funcConstructor(body, httpResponse){\r\n    return new Function(\"httpResponse\", body)(httpResponse)\r\n}\r\n\r\nfunction actionExecution(arr){\r\n    var obj = {};\r\n    for(item in arr){\r\n        if(arr[item]['status'] !== 'Skipped'){\r\n            obj = arr[item];\r\n        }\r\n    }\r\n    return obj\r\n}\r\n\r\nreturn response;"
+                },
+                "runAfter": {
+                    "ScopeAtt": [
+                        "SUCCEEDED",
+                        "TIMEDOUT",
+                        "FAILED"
+                    ]
+                },
+                "type": "JavaScriptCode"
+            },
+            "ScopeAtt": {
+                "actions": {
+                    "GetSecret": {
+                        "inputs": {
+                            "parameters": {
+                                "secretName": "@triggerBody()?['keyvaultEntry']"
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "keyVault",
+                                "operationId": "getSecret",
+                                "serviceProviderId": "/serviceProviders/keyVault"
+                            }
+                        },
+                        "runtimeConfiguration": {
+                            "secureData": {
+                                "properties": [
+                                    "outputs"
+                                ]
+                            }
+                        },
+                        "trackedProperties": {
+                            "action_type": "attachment",
+                            "destination": "@triggerBody()?['destination']",
+                            "extra_info": "",
+                            "logicApp":"{{logicappName}}",
+                            "process_type": "@triggerBody()?['process_type']",
+                            "reference_number": "@triggerBody()?['reference_number']",
+                            "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                            "source": "@triggerBody()?['source']",
+                            "ticket_number": "@triggerBody()?['ticket_number']"
+                        },
+                        "type": "ServiceProvider"
+                    },
+                    "SwitchOnAttType": {
+                        "cases": {
+                            "ACCENTURE": {
+                                "actions": {
+                                    "GetToken": {
+                                        "inputs": {
+                                            "body": {
+                                                "action_type": "attachment",
+                                                "destination": "@{triggerBody()?['destination']}",
+                                                "process_type": "@{triggerBody()?['process_type']}",
+                                                "reference_number": "@{triggerBody()?['reference_number']}",
+                                                "source": "@{triggerBody()?['Source']}",
+                                                "ticket_number": "@{triggerBody()?['ticket_number']}"
+                                            },
+                                            "host": {
+                                                "workflow": {
+                                                    "id": "kpnsn-gen-gettoken-wf"
+                                                }
+                                            }
+                                        },
+                                        "type": "Workflow"
+                                    },
+                                    "SendOAuthAtt": {
+                                        "inputs": {
+                                            "body": {
+                                                "attachments": {
+                                                    "attachment": {
+                                                        "attachment_data": "@triggerBody()?['attachment']?['content']",
+                                                        "attachment_name": "@triggerBody()?['attachment']?['filename']"
+                                                    }
+                                                },
+                                                "reference_number": "@triggerBody()?['reference_number']",
+                                                "ticket_number": "@triggerBody()?['ticket_number']"
+                                            },
+                                            "headers": "@addProperty(triggerBody()?['attApiDetails']?['headers'],'Authorization', concat('Bearer ', body('GetToken')?['token']))",
+                                            "method": "@triggerBody()?['attApiDetails']?['httpMethod']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['fullUrl']"
+                                        },
+                                        "runAfter": {
+                                            "GetToken": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "accenture"
+                            },
+                            "GANTNER": {
+                                "actions": {
+                                    "ConfirmAttachment": {
+                                        "inputs": {
+                                            "body": {
+                                                "additionalComment": {
+                                                    "body": "Attachment @{triggerBody()['attachment']['filename']} attached."
+                                                },
+                                                "public": true,
+                                                "temporaryAttachmentIds": [
+                                                    "@{body('PostTemporaryAttachment')?['temporaryAttachments']?[0]?['temporaryAttachmentId']}"
+                                                ]
+                                            },
+                                            "headers": "@triggerBody()?['attApiDetails']?['headers']",
+                                            "method": "POST",
+                                            "uri": "@triggerBody()?['attApiDetails']?['fullUrl']"
+                                        },
+                                        "runAfter": {
+                                            "PostTemporaryAttachment": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    },
+                                    "PostTemporaryAttachment": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()?['userName']}"
+                                            },
+                                            "body": "------WebKitFormBoundary7MA4YWxkTrZu0gW\nContent-Disposition: form-data; name=\"file\"; filename=\"@{triggerBody()?['attachment']?['filename']}\"\nContent-Type: application/plain;charset=utf-8\nContent-Transfer-Encoding: base64\n\n@{triggerBody()?['attachment']?['content']}\n------WebKitFormBoundary7MA4YWxkTrZu0gW--",
+                                            "headers": "@triggerBody()?['attApiDetails']?['headersTemp']",
+                                            "method": "POST",
+                                            "uri": "@triggerBody()?['attApiDetails']?['fullUrlTemp']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "gantner"
+                            },
+                            "GELDMAAT": {
+                                "actions": {
+                                    "SendGeldmaatAtt": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "body": {
+                                                "attachments": [
+                                                    {
+                                                        "action": "@{triggerBody()?['attachment']?['action']}",
+                                                        "content": "@{triggerBody()?['attachment']?['content']}",
+                                                        "filename": "@{triggerBody()?['attachment']?['filename']}",
+                                                        "size": "@{triggerBody()?['attachment']?['size']}"
+                                                    }
+                                                ],
+                                                "ice4u_source_id": "@{triggerBody()?['attApiDetails']?['requestBody']?['ice4u_source_id']}",
+                                                "ice4u_target_id": "@{triggerBody()?['attApiDetails']?['requestBody']?['ice4u_target_id']}",
+                                                "u_comments": "@{triggerBody()?['attApiDetails']?['requestBody']?['u_comments']}",
+                                                "u_vendor": "@{triggerBody()?['attApiDetails']?['requestBody']?['u_vendor']}",
+                                                "u_vendor_action": "@{triggerBody()?['attApiDetails']?['requestBody']?['u_vendor_action']}",
+                                                "u_vendor_state": "@{triggerBody()?['attApiDetails']?['requestBody']?['u_vendor_state']}"
+                                            },
+                                            "headers": "@triggerBody()?['attApiDetails']?['headers']",
+                                            "method": "@triggerBody()?['attApiDetails']?['httpMethod']",
+                                            "uri": "@triggerBody()?['attApiDetails']?['fullUrl']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "geldmaat"
+                            },
+                            "Json1": {
+                                "actions": {
+                                    "SendJson1": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "body": {
+                                                "Attachment": {
+                                                    "Data": "@triggerBody()?['attachment']?['content']",
+                                                    "Filename": "@triggerBody()?['attachment']?['filename']",
+                                                    "MimeType": "application/octet-stream"
+                                                },
+                                                "Header": "@triggerBody()?['attApiDetails']?['bodyHeaders']"
+                                            },
+                                            "headers": {
+                                                "Content-Type": "application/json"
+                                            },
+                                            "method": "POST",
+                                            "queries": "@triggerBody()?['attApiDetails']?['queries']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['postUrl']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "json1"
+                            },
+                            "Json2": {
+                                "actions": {
+                                    "GetAttSysID": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()?['userName']}"
+                                            },
+                                            "headers": "@triggerBody()?['attApiDetails']?['headers']",
+                                            "method": "@triggerBody()?['attApiDetails']?['httpMethod1']",
+                                            "queries": "@triggerBody()?['attApiDetails']?['queries']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['url1']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    },
+                                    "SendJson2": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()?['userName']}"
+                                            },
+                                            "body": "@triggerBody()?['attachment']?['content']",
+                                            "headers": "@triggerBody()?['attApiDetails']?['headers2']",
+                                            "method": "@triggerBody()?['attApiDetails']?['httpMethod2']",
+                                            "queries": "@addProperty(addProperty(triggerBody()?['attApiDetails']?['queries2'], 'file_name',triggerBody()?['attachment']?['filename']),'table_sys_id',body('GetAttSysID')?['result']?[0]?['sys_id'])",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['url2']"
+                                        },
+                                        "runAfter": {
+                                            "GetAttSysID": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "json2"
+                            },
+                            "Mail": {
+                                "actions": {
+                                    "SendEmail": {
+                                        "inputs": {
+                                            "parameters": {
+                                                "attachment": [
+                                                    {
+                                                        "contentData": "@base64ToBinary(triggerBody()?['attachment']?['content'])",
+                                                        "contentType": "@{triggerBody()?['attachment']?['content_type']}",
+                                                        "fileName": "@triggerBody()?['attachment']?['filename']"
+                                                    }
+                                                ],
+                                                "bcc": "@triggerBody()?['attApiDetails']?['requestBody']?['bcc']",
+                                                "body": "@triggerBody()?['attApiDetails']?['requestBody']?['body']",
+                                                "cc": "@triggerBody()?['attApiDetails']?['requestBody']?['cc']",
+                                                "from": "@triggerBody()?['attApiDetails']?['requestBody']?['from']",
+                                                "importance": "@triggerBody()?['attApiDetails']?['requestBody']?['importance']",
+                                                "isHTML": "@triggerBody()?['attApiDetails']?['requestBody']?['isHtml']",
+                                                "subject": "@triggerBody()?['attApiDetails']?['requestBody']?['subject']",
+                                                "to": "@triggerBody()?['attApiDetails']?['requestBody']?['to']"
+                                            },
+                                            "serviceProviderConfiguration": {
+                                                "connectionName": "smtp",
+                                                "operationId": "sendEmail",
+                                                "serviceProviderId": "/serviceProviders/Smtp"
+                                            }
+                                        },
+                                        "type": "ServiceProvider"
+                                    }
+                                },
+                                "case": "mail"
+                            },
+                            "Multipart1": {
+                                "actions": {
+                                    "SendMultipart1": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "body": "------WebKitFormBoundary7MA4YWxkTrZu0gW\nContent-Disposition: form-data; name=\"file\"; filename=\"@{triggerBody()['attachment']['filename']}\"\nContent-Type: application/plain;charset=utf-8\nContent-Transfer-Encoding: base64\n\n@{triggerBody()['attachment']['content']}\n------WebKitFormBoundary7MA4YWxkTrZu0gW--",
+                                            "headers": {
+                                                "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+                                            },
+                                            "method": "POST",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['postUrl']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "multipart1"
+                            },
+                            "Multipart2": {
+                                "actions": {
+                                    "GetAttID": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "headers": {
+                                                "Authorization": "@{body('GetSecret')?['value']}",
+                                                "Content-Type": "application/json"
+                                            },
+                                            "method": "GET",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['getUrl']"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    },
+                                    "SendMultipart2": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "body": "------WebKitFormBoundary7MA4YWxkTrZu0gW\nContent-Disposition: form-data; name=\"file\"; filename=\"@{triggerBody()['attachment']['filename']}\"\nContent-Type: application/plain;charset=utf-8\nContent-Transfer-Encoding: base64\n\n@{triggerBody()['attachment']['content']}\n------WebKitFormBoundary7MA4YWxkTrZu0gW--",
+                                            "headers": {
+                                                "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+                                            },
+                                            "method": "POST",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@concat(triggerBody()?['attApiDetails']?['postUrl'],body('GetAttID')['id'],'/attachments')"
+                                        },
+                                        "runAfter": {
+                                            "GetAttID": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "multipart2"
+                            },
+                            "VWT": {
+                                "actions": {
+                                    "VWTGetIncidentNumber": {
+                                        "inputs": {
+                                            "queries":                     {
+                                                "sysparm_display_value": "True",
+                                                "sysparm_exclude_reference_link": "False",
+                                                "sysparm_fields": "incident.number",
+                                                "sysparm_input_display_value": "True",
+                                                "sysparm_limit": "1",
+                                                "sysparm_offset": "0",
+                                                "sysparm_query": "@triggerBody()?['attApiDetails']?['attGetIncidentNumberQuery']"
+                                            },
+                                            "headers":                     {
+                                                "Connection": "close",
+                                                "Content-Type": "application/json"
+                                            },
+                                            "method": "GET",
+                                            "uri": "@{concat(parameters('serviceNowGreen')?['baseUrl'],'api/now/table/incident_task')}",
+                                            "authentication": {
+                                                "type": "Basic",
+                                                "username": "@parameters('serviceNowGreen')?['userName']",
+                                                "password": "@parameters('serviceNowGreen')?['secret']"
+                                              }
+                                          },
+                                        "runAfter": {},
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    },
+                                    "VWTSendAttachment": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{triggerBody()['userName']}"
+                                            },
+                                            "body": {
+                                                "Attachments": [
+                                                    {
+                                                        "Name": "@triggerBody()?['attachment']?['filename']",
+                                                        "Content": "@triggerBody()?['attachment']?['content']"
+                                                    }
+                                                ],
+                                                "OperationType": "@triggerBody()?['attApiDetails']?['requestBody']?['OperationType']",
+                                                "OrderNoCustomer": "@triggerBody()?['attApiDetails']?['requestBody']?['OrderNoCustomer']",
+                                                "ReferenceNo": "@triggerBody()?['attApiDetails']?['requestBody']?['ReferenceNo']",
+                                                "Requester_ID": "@triggerBody()?['attApiDetails']?['requestBody']?['Requester_ID']",
+                                                "TraceNoCustomer": "@coalesce(triggerBody()?['attApiDetails']?['requestBody']?['TraceNoCustomer'],body('VWTGetIncidentNumber')?['result'][0]?['incident.number'])",
+                                                "TransactionID": "@triggerBody()?['attApiDetails']?['requestBody']?['TransactionID']"
+                                            },
+                                            "headers": "@triggerBody()?['attApiDetails']?['headers']",
+                                            "method": "@triggerBody()?['attApiDetails']?['httpMethod']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@triggerBody()?['attApiDetails']?['fullUrl']"
+                                        },
+                                        "runAfter": {
+                                            "VWTGetIncidentNumber": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "vwt"
+                            }
+                        },
+                        "default": {
+                            "actions": {
+                                "EndRunUnsupportedAtt": {
+                                    "inputs": {
+                                        "runStatus": "Succeeded"
+                                    },
+                                    "runAfter": {
+                                        "UnsupportedAttResponse": [
+                                            "SUCCEEDED"
+                                        ]
+                                    },
+                                    "type": "Terminate"
+                                },
+                                "UnsupportedAttResponse": {
+                                    "inputs": {
+                                        "body": {
+                                            "error": {
+                                                "code": "TransformationFailure",
+                                                "message": "Unsupported attachment Type"
+                                            }
+                                        },
+                                        "headers": {
+                                            "AppRunlink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}"
+                                        },
+                                        "statusCode": 418
+                                    },
+                                    "kind": "Http",
+                                    "type": "Response"
+                                }
+                            }
+                        },
+                        "expression": "@triggerBody()?['attApiDetails']?['attType']",
+                        "runAfter": {
+                            "GetSecret": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Switch"
+                    }
+                },
+                "runAfter": {},
+                "type": "Scope"
+            },
+            "ScopeTransformFailureResponse": {
+                "inputs": {
+                    "body": {
+                        "error": {
+                            "code": "@if(equals(triggerBody()?['Source'],'KPN-SNGR'),'TransformationFailure','TechnicalEndpointFailure')",
+                            "message": "Action ResponseData failed\nDescription:  @{actions('ResponseData')?['error']}"
+                        }
+                    },                    
+                    "headers": {
+                        "AppRunlink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}"
+                    },
+                    "statusCode": "@if(equals(triggerBody()?['Source'],'KPN-SNGR'),418,500)"
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "KaiEvent": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "kpnsn-gen-att-wf": {
+                "inputs":{
+                    "schema": {
+                        "properties": {
+                            "keyvaultEntry": {
+                                "type": "string"
+                            },
+                            "responseStructure": {
+                                "type": "string"
+                            },
+                            "attApiDetails": {
+                                "properties": {
+                                    "attType": {
+                                        "description": "Attachment type for the attachment.",
+                                        "example": "json1",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "attType"
+                                ],
+                                "type": "object"
+                            },
+                            "attachment": {
+                                "properties": {
+                                    "content": {
+                                        "description": "Base64 coded content of the attachment.",
+                                        "example": "IQ0KZW5hYmxlIHNlY3JldCBjaXNjbw0KIQ0KIQ0KIQ0KIQ0KIQ0KIQ0KIQ0Kbm8gaXAgc291cmNlLXJvdXRlDQohDQohDQohDQohDQohDQohDQohDQohDQoNCg0KIQ0KaXAgd1ZXVlIDEwMCBvdCiBwZXJtaXQgdWQogdHJhbnNwb3J0IGlucHV0IHRlbG5ldA0KIQ0KZW5k",
+                                        "type": "string"
+                                    },
+                                    "filename": {
+                                        "description": "Name of the file with file extension.",
+                                        "example": "test.txt",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "content",
+                                    "filename"
+                                ],
+                                "type": "object"
+                            },
+                            "destination": {
+                                "type": "string"
+                            },
+                            "process_type": {
+                                "type": "string"
+                            },
+                            "reference_number": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            },
+                            "ticket_number": {
+                                "type": "string"
+                            },
+                            "userName": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "responseStructure",
+                            "attApiDetails",
+                            "attachment",
+                            "destination",
+                            "process_type",
+                            "reference_number",
+                            "source",
+                            "ticket_number"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "operationOptions": "EnableSchemaValidation",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}

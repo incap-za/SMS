@@ -1,0 +1,137 @@
+{
+    "wfparameters":{        
+        "logicappName": {
+            "type": "String",
+            "value": "{{env}}-ticket-shared-la"
+        },
+        "resourceGroup": {
+            "type": "String",
+            "value": "{{env}}-ticket-rg"
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "KpnsngrTicketPost": {
+                "description": "Call the SN Event API without the attachment array",
+                "inputs": {
+                    "authentication": {
+                        "password": "@parameters('serviceNowGreenEvent')?['secret']",
+                        "type": "Basic",
+                        "username": "@parameters('serviceNowGreenEvent')?['userName']"
+                    },
+                    "body": {
+                        "records": [
+                            {
+                                "additional_info": "@{if(not(equals(triggerBody()?['additional_info'],null)),concat(replace(string(triggerBody()?['additional_info']),'}',''),string(concat(',','\"short_description\": \"',triggerBody()?['errortype'],':',triggerBody()?['logicapp'],' (',triggerBody()?['resourcegroup'],')\"}'))),concat('{\"event_ci\":\"ServiceNow Integration\",\"company\":\"8001206483\"',string(concat(',','\"short_description\": \"',triggerBody()?['errortype'],':',triggerBody()?['logicapp'],' (',triggerBody()?['resourcegroup'],')\"}'))))}",
+                                "description": "@{triggerBody()?['source']}\n @{triggerBody()['errordescription']} \n @{triggerBody()?['callbackurl']} \n @{triggerBody()['runID']}",
+                                "event_class": "@triggerBody()['errortype']",
+                                "message_key": "@triggerBody()?['message_key']",
+                                "node": "@{concat(triggerBody()?['logicapp'], ':' , triggerBody()?['workflow'])}",
+                                "resource": "@triggerBody()?['resourcegroup']",
+                                "severity": "@triggerBody()?['severity']",
+                                "source": "Azure",
+                                "time_of_event": "@coalesce(triggerBody()?['time_of_event'],utcNow('yyyy-MM-dd HH:mm:ss'))",
+                                "type": "@triggerBody()['errortype']"
+                            }
+                        ]
+                    },
+                    "headers": {
+                        "Connection": "close"
+                    },
+                    "method": "POST",
+                    "retryPolicy": {
+                        "type": "none"
+                    },
+                    "uri": "@{concat(parameters('serviceNowGreenEvent')?['baseUrl'],'api/global/em/jsonv2')}"
+                },
+                "runAfter": {
+                    "TechnicalSuccessResponse": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "trackedProperties": {
+                    "action_type": "New",
+                    "destination": "KPN-SNGR",
+                    "extra_info": "@{concat(action()?['inputs']?['body']?['records']?[0]?['message_key'],'; Severity: ',action()?['inputs']?['body']?['records']?[0]?['severity'])}",
+                    "logicApp":"{{logicappName}}",
+                    "process_type": "event",
+                    "reference_number": "",
+                    "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                    "source": "@triggerBody()?['source']",
+                    "ticket_number": ""
+                },
+                "type": "Http"
+            },
+            "TechnicalSuccessResponse": {
+                "inputs": {
+                    "body": {
+                        "code": "FunctionalEndpointSuccess",
+                        "message": "Message is processed successfully.",
+                        "reference_number": "",
+                        "state": "",
+                        "sys_id": "",
+                        "ticket_number": ""
+                    },
+                    "headers": {
+                        "AppRunlink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}"
+                    },
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {},
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "errorlog-wf": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "callbackurl": {
+                                "type": "string"
+                            },
+                            "errordescription": {
+                                "type": "string"
+                            },
+                            "errortype": {
+                                "type": "string"
+                            },
+                            "logicapp": {
+                                "type": "string"
+                            },
+                            "message_key": {
+                                "type": "string"
+                            },
+                            "resourcegroup": {
+                                "type": "string"
+                            },
+                            "runID": {
+                                "type": "string"
+                            },
+                            "severity": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "errortype",
+                            "logicapp",
+                            "errordescription",
+                            "runID"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "operationOptions": "EnableSchemaValidation",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}

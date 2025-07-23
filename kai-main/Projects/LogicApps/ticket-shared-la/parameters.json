@@ -1,0 +1,53 @@
+{
+    "callerSecret": {
+        "type": "String",
+        "value": "@appsetting('app-callersecret')"
+    },
+    "subscriptionId": {
+        "type": "String",
+        "value": "{{subscriptionId}}"
+    },
+    "serviceNowGreenEvent": {
+        "type": "Object",
+        "value": {
+            "baseUrl": "{{serviceNowGreenEvent.baseUrl}}",
+            "userName": "{{serviceNowGreenEvent.userName}}",
+            "secret":"@appsetting('app-kpnsngr-event-secret')"
+        }
+    },
+    "serviceNowGreen": {
+        "type": "Object",
+        "value": {
+            "baseUrl": "{{serviceNowGreen.baseUrl}}",
+            "userName": "{{serviceNowGreen.userName}}",
+            "secret":"@appsetting('app-kpnsngr-secret')"
+        }
+    },
+    "serviceNowGreenTask": {
+        "type": "Object",
+        "value": {
+            "baseUrl": "{{serviceNowGreenTask.baseUrl}}",
+            "userName": "{{serviceNowGreenTask.userName}}",
+            "secret": "@appsetting('app-kpnsngr-task-secret')"
+        }
+    },
+    "oAuth": {
+        "type": "Object",
+        "value": {
+            "clientId": "{{oAuth.clientId}}",
+            "audience": "{{oAuth.audience}}"
+        }
+    },
+    "keyvaultUri": {
+        "type": "String",
+        "value": "@appsetting('app-keyvault-uri')"
+    },
+    "mailFrom":{
+        "type": "String",
+        "value": "{{smtp.mailFrom}}"
+    },
+    "mailOb":{
+        "type": "String",
+        "value": "{{smtp.mailOb}}"
+    }
+}
