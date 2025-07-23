@@ -1,7 +1,3 @@
-Get the changed files for commit/PR/master
-
-View raw log
-
 Starting: Get the changed files for commit/PR/master
 ==============================================================================
 Task         : Azure PowerShell
@@ -62,7 +58,29 @@ TokenCache         :
 VersionProfile     : 
 ExtendedProperties : {}
 
-
+VERBOSE: Command [Set-AzContext] succeeded.
+This is the build for branch: DEV
+Checking last merge into: DEV
+pullRequest:56939
+Obtain access token...
+fullUrl:https://dev.azure.com/kpn/ServiceNow%20IO/_apis/git/repositories/kai-main/pullRequests/56939
+prDetails.sourceRefName= refs/heads/feature/KAI-112191-SMS-API-Migrate-To-ASE
+Fetching files changed as part of this feature branch......
+Basepath = F:\yamlagent\acc-ag1\_work\14\s , staging Dir = F:\yamlagent\acc-ag1\_work\14\a
+Build.SourceVersion = 536acf6142ba550c1f81ca9cb1bb45c23ae2e6f5
+Retrieving changed files for the commit/PR for feature/hotfix branch:  origin/feature/KAI-112191-SMS-API-Migrate-To-ASE
+DeploymentScripts/2025/KAI-112191-SMS-Workflow-Provider-Update/KAI-112191-SMS-Workflow-Provider-Update.ps1 DeploymentScripts/2025/KAI-112191-SMS-Workflow-Provider-Update/sms-token-config.sql Projects/APIs/_apiMappings.json Projects/LogicApps/api-ticket-la/Artifacts/Maps/kpn-sms-token-json-mp.liquid Projects/LogicApps/api-ticket-la/sms-post-kpnsms-wf/workflow.json
+ps1 file path : DeploymentScripts/2025/KAI-112191-SMS-Workflow-Provider-Update/KAI-112191-SMS-Workflow-Provider-Update.ps1
+Checking for Deployment files
+Found LogicAppFolder: $Environment-api-ticket-la
+Found SwaggerFile: sms-kpn-rest-api.json
+Copying LogicApp folder $Environment-api-ticket-la
+##[error]Cannot find path 'F:\yamlagent\acc-ag1\_work\14\s\Projects\LogicApps\$Environment-api-ticket-la' because it does not exist.
+##[error]PowerShell exited with code '1'.
+Disconnect-AzAccount -Scope CurrentUser -ErrorAction Stop
+Disconnect-AzAccount -Scope Process -ErrorAction Stop
+Clear-AzContext -Scope Process -ErrorAction Stop
+Finishing: Get the changed files for commit/PR/master
 
 # SMS
 Description:
