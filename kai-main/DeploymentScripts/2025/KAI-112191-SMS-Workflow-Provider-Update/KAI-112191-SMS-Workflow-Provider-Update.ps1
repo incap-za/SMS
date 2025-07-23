@@ -45,4 +45,4 @@ if($GitDirectory -ne "C:\src\repositories\kai-main"){
 
 CD "$GitDirectory\Deployment\LogicApps"
 # Deploy Workflow
-.\DeployWF -Environment $Environment -LogicAppFolder "$Environment-api-ticket-la" -BranchName $BranchName
+.\DeployWF -Environment $Environment -LogicAppFolder "api-ticket-la" -BranchName $BranchName
