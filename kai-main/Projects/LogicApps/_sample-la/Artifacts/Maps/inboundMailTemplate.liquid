@@ -1,0 +1,114 @@
+{% comment %} 
+  ################################################################################################# 
+  # Variable declaration (Default + needed for output json object)
+  #################################################################################################
+{% endcomment %}
+
+{% assign inputBaseUrl = content.baseUrl %}
+{% assign inputMapInputParamJson = content.mapInputParamJson %}
+{% assign inputCleanBody = content.functionOutput.cleanBody %}
+{% assign inputSplitable = content.functionOutput.splitable %}
+{% assign inputSource = content.source %}
+{% assign inputSubject = content.subject | Strip %}
+{% capture newLine%}
+{% endcapture %}
+
+{% assign requestBodyText = '{}' %}	
+{% assign responseBodyText = '{}' %}
+{% assign outputAction = 'EmailValidationResponse' %}
+{% assign ValidationResult = 'InvalidEmail' %}
+
+{% assign inputReferenceNumber =  inputTicketNumber %}
+{% assign inputState = content.functionOutput.splitable | Split: 'Ticket state:' | Last | Split: '^~^' | First | Strip %}
+
+{% comment %} 
+  ################################################################################################# 
+  # End of variable declaration Section 
+  # Start of the Initial Validation Logic to determine outputAction(ProcessToSN/EmailValidationResponse)
+  #################################################################################################
+{% endcomment %}
+
+{% comment %} Initial Validation {% endcomment %}
+{% if  inputSubject contains '<<your dump logic>>' %}
+	{% assign outputAction = 'Dump' %}
+{% elseif referenceNumber != nil and referenceNumber != '' %}
+    {% assign outputAction = 'ProcessToSN' %}
+{% else %}
+	{% assign responseBodyComment = 'No customer reference number received' %} {% comment %} Email Validation Failure {% endcomment %}
+{% endif %}
+
+
+{% comment %}
+#################################################################################################
+# End of the Initial Validation Logic
+# Start of the outputAction Specific Logic
+#################################################################################################
+{% endcomment %}
+
+{% case outputAction %}
+  	{% when 'ProcessToSN' %}
+		{% comment %}
+		#################################################################################################
+		# End of the outputAction Specific Logic
+		# Start of the process type Specific Logic + action_type
+		#################################################################################################
+		{% endcomment %}	
+		{% case inputProcessType %}	
+		{% when 'incident_task' %}
+			{% assign inputBaseUrl = inputBaseUrl | Append: "api/kpn2/incident_task" %}
+			{% assign httpMethod = 'PUT' %}
+			{% assign attTable = 'incident_task' %}
+			{% capture requestBodyText %}
+				{
+						{% comment %} SN Json mapping goes here {% endcomment %}				
+				}
+			{% endcapture %}
+		{% when 'sc_task' %}
+			{% assign inputBaseUrl = inputBaseUrl | Append: "api/kpn2/request_task" %}
+			{% assign httpMethod = 'PUT' %}
+			{% assign attTable = 'sc_task' %}
+			{% capture requestBodyText %}
+				{
+					{% comment %} SN Json mapping goes here {% endcomment %}					
+				}
+			{% endcapture %}
+		{% when 'change_task' %}
+			{% assign inputBaseUrl = inputBaseUrl | Append: "api/kpn2/change_task" %}
+			{% assign httpMethod = 'PUT' %}
+			{% assign attTable = 'change_task' %}
+			{% capture requestBodyText %}
+				{
+					{% comment %} SN Json mapping goes here {% endcomment %}				
+				}
+			{% endcapture %}
+		{% endcase %}
+	{% when 'EmailValidationResponse' %}
+		{% capture responseBodyText %}
+			{				
+				"code": "FunctionalEndpointFailure",
+				"ProcessingResult": "{{ responseBodyComment | Replace: '\\' , '\\' | Replace: '\"', '\"' }}", {% comment %} Actual reason for failure {% endcomment %}
+				"ValidationResult": "{{ValidationResult}}" {% comment %} One meaningful word within 50 character {% endcomment %}
+			}
+		{% endcapture %}
+	{% else %} {% comment %} Dump case, responseBodyText mapping is not needed as it is done generically on WF {% endcomment %}
+	{% endcase %}
+
+
+	{% comment %} 
+      ################################################################################################# 
+      # Liquid output JSON message 
+      #################################################################################################
+    {% endcomment %}
+	{
+		"fullUrl": "{{ inputBaseUrl }}",
+		"outputAction":"{{ outputAction  }}",
+		"httpMethod":"{{ httpMethod }}",
+		"headers": {
+			"Connection": "close"
+		},       
+		"requestBody": {{ requestBodyText }},
+		"responseBody": {{ responseBodyText }},
+		"attTable": "{{ attTable }}"
+	}
+
+

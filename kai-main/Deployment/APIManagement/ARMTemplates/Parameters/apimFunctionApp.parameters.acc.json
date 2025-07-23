@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountsName": {
+      "value": "kaiaccsharedapimst"
+    },
+    "functionAppName": {
+      "value": "kai-acc-apim-funcappv3"
+    },
+    "appSettings": {
+      "value": {
+        "DatabaseConnectionString": "Server=tcp:kaiaccsql01.database.windows.net,1433;Initial Catalog=kai-acc-sql-db;Persist Security Info=False;User ID=gen-la-usr-acc;Password={0};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+        "DatabasePasswordSecret": "db-kaisqldb-genlausracc",
+        "DatabaseVault": "kai-acc-shared-kv"
+      }
+    },
+    "siteAuthclientId": {
+      "value": "a772ca70-de7f-4946-a297-e79bed332456"
+    }
+  }
+}

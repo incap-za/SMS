@@ -1,0 +1,8 @@
+﻿{
+  "environment": "acc",
+  "environmentLogicApp": "acc",
+  "subscriptionId": "0315ea1e-1c55-4073-88de-ca53893a048f",
+  "apimResourceGroupName": "kai-acc-shared-apim-rg",
+  "apimId": "kai-acc-integration-apimv2",
+  "serviceUrl": "https://b2bacc-connect.kpn.org"
+}

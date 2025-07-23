@@ -1,0 +1,761 @@
+{% comment %} 
+################################################################################################# 
+# Liquid Template for SN-Green Outbound messages
+#
+################################################################################################# 
+# Variable declaration 
+#################################################################################################
+{% endcomment %}
+{% assign inputBaseUrl = content.baseUrl %}
+{% assign inputEnvironment = content.environment %}
+{% assign inputMapInputParamJson = content.mapInputParamJson %}
+{% assign inputMessage = content.message %}
+
+{% assign inputTicketAttributes = inputMessage.ticket_attributes %}
+{% assign inputAttachment = inputMessage.attachment %}
+{% assign inputActionType = inputMessage.action_type %}
+
+{% comment %}Common variables {% endcomment %}
+{% assign inputComment = inputTicketAttributes.comments %}
+{% assign inputWorknotes = inputTicketAttributes.work_notes %}
+{% assign inputProcessType = content.process_type %}
+{% assign inputState = inputMessage.state %}
+{% assign inputTicketNumber = inputMessage.ticket_number %}
+{% assign inputReferenceNumber = inputMessage.reference_number %}
+{% assign inputPreviousState = inputMessage.previous_state %}
+{% assign inputDescription = inputTicketAttributes.description %}
+{% assign inputShortDescription = inputTicketAttributes.short_description %}
+
+{% comment %}Attachment Common variables {% endcomment %}
+{% assign inputContent = inputAttachment.content %}
+{% assign inputFilename = inputAttachment.filename %}
+{% assign inputContentType = inputAttachment.content_type %}
+{% assign inputAttachmentAction = inputAttachment.action %}
+{% assign inputAttachmentSysID = inputAttachment.attachment_sys_id %}
+
+{% comment %} 
+################################################################################################# 
+# ProcessType specific Code & Variable declaration 
+################################################################################################# 
+{% endcomment %}
+{% case inputMessage.process_type %}
+
+{% comment %} 
+################################################################################################# 
+# Incident-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'incident' %}
+		{% comment %}incident-specific variable declaration/assigning {% endcomment %}
+		{% assign inputPriority = inputTicketAttributes.priority %}
+		{% assign inputUrgency = inputTicketAttributes.urgency %}
+		{% assign inputLocation = inputTicketAttributes.location %}
+		{% assign inputImpact = inputTicketAttributes.impact %}
+		{% assign inputAffectedCI = inputTicketAttributes.affected_ci %}
+		{% assign inputCallerId = inputTicketAttributes.caller.caller_id %}
+		{% assign inputReportedByEmail = inputTicketAttributes.reported_by.reported_by_email %}
+		{% assign inputServiceExternalName = inputTicketAttributes.cmdb_ci_service_discovered.service_external_name %}
+		{% assign inputPendingReason = inputTicketAttributes.on_hold_reason %}
+		{% assign inputCreatedBy = inputTicketAttributes.created_by %}
+		{% assign inputService = inputTicketAttributes.service %}
+		{% assign inputResolutionCode= inputTicketAttributes.resolution_code %}
+		{% assign inputResolutionNotes = inputTicketAttributes.resolution_notes %}
+		{% assign inputResolutionReview = inputTicketAttributes.resolution_review %}
+		{% assign inputExternalCommunication = inputTicketAttributes.external_communication %}
+		{% if inputComment != nil and inputComment != '' %}
+		{% assign outputComments = inputComment %}
+		{% else %}
+		{% assign outputComments = "" %}
+		{% endif %}
+
+		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+
+		{% comment %}capture requestBodyText {% endcomment %}
+
+		{% capture requestBodyText %}
+			{% case actionType %}	
+				{% when 'New' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'In Progress' %}
+					{% if  %}	
+					{% endif %}
+
+				{% when 'Comment' %}
+					{% if  %}	
+					{% endif %}
+
+				{% when 'Canceled' %}
+					{% if  %}	
+					{% endif %}
+
+				{% when 'On Hold' %}
+					{% if  %}	
+					{% endif %}
+
+				{% when 'Resolved' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Hit-In-One' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Reopened' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Closed' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Priority-Changed' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'field-update' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Comment - Resolved' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Comment - On Hold' %}
+					{% if  %}	
+					{% endif %}	
+			{% endcase %}
+		{% endcapture %}
+
+{% comment %} 
+################################################################################################# 
+# ChangeRequest-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'change_request' %}
+		{% comment %}changeRequest-specific-specific variables {% endcomment %}
+		{% assign inputOnHold = inputTicketAttributes.on_hold %}
+		{% assign inputPriority = inputTicketAttributes.priority %}
+		{% assign inputCabRequired = inputTicketAttributes.cab_required %}
+		{% assign inputResolutionNotes = inputTicketAttributes.close_notes %}
+		{% assign inputPendingReason = inputTicketAttributes.on_hold_reason %}
+		{% assign inputRequiredInformation = inputTicketAttributes.comments %}
+		{% assign inputCloseNote = inputTicketAttributes.close_notes %}
+		{% assign inputPlannedStartDate = inputTicketAttributes.planned_start_date | Slice: 0, 17 %}
+		{% assign inputPlannedEndDate = inputTicketAttributes.planned_end_date | Slice: 0, 17 %}
+		{% assign inputExternalCommunication = inputTicketAttributes.external_communication %}
+		{% assign inputActualStartDate = inputTicketAttributes.actual_start_date | Slice: 0, 17 %}
+		{% assign inputActualEndDate = inputTicketAttributes.actual_end_date | Slice: 0, 17 %}
+		{% assign inputImplementationPlan = inputTicketAttributes.implementation_plan %}
+		{% assign inputAffectedCI = inputTicketAttributes.affected_ci %}
+		{% assign inputType = inputTicketAttributes.type %}
+		{% assign inputCreatedBy = inputTicketAttributes.created_by %}
+		{% assign inputCloseCode = inputTicketAttributes.close_code %}
+		{% assign inputRisk = inputTicketAttributes.risk %}
+		{% assign inputImpact = inputTicketAttributes.impact %}
+		{% assign inputBusinessReason = inputTicketAttributes.business_reason %}
+		{% assign inputRequestedByName = inputTicketAttributes.requested_by_name %}
+		{% assign inputOriginalRequesterEmail = inputTicketAttributes.original_requester_email %}
+		{% assign inputOriginalRequesterName = inputTicketAttributes.original_requester_name %}
+		{% assign inputOriginalRequesterUserId = inputTicketAttributes.original_requester_user_id %}
+		{% assign inputOriginalRequesterPhone = inputTicketAttributes.original_requester_phone %}
+		{% assign inputCategory = inputTicketAttributes.category %}
+		{% assign inputRequestedByDate = inputTicketAttributes.requested_by_date | Slice: 0, 17  %}
+		{% assign inputService = inputTicketAttributes.service %}
+        {% assign inputCustomerReference = inputTicketAttributes.customer_reference %}
+		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+  		{% else %}
+			{% assign outputComments = "" %}
+  		{% endif %}
+
+		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+
+		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %}
+			{% case actionType %}
+				{% when 'Created' %}
+					{% if  %}	
+					{% endif %}
+
+				{% when 'New' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Rescheduled' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'On Hold-Changed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Assess' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Authorize' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Scheduled' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Implement' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Review' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Canceled' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Comment' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+				
+			{% endcase %}
+		{% endcapture %}
+
+{% comment %}		
+#################################################################################################
+# RequestItem-property capture
+#################################################################################################
+{% endcomment %}
+	{% when 'sc_req_item' %}
+		{% comment %}RequestItem-specific-specific variables {% endcomment %}
+		{% assign inputCloseCode = inputTicketAttributes.close_code %}
+		{% assign inputReturnCode = inputTicketAttributes.return_code %}
+		{% assign inputReturnValue = inputTicketAttributes.return_value %}
+	
+		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+	  	{% else %}
+			{% assign outputComments = "" %}
+	  	{% endif %}
+  
+		{% comment %}custom logic to assign complex variables {% endcomment %}
+	
+	
+		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %}
+			{% case actionType %}
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'In Progress' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Aborted' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Complete' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Canceled' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Comment' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'On Hold' %}
+					{% if  %}	
+					{% endif %}	
+				
+			{% endcase %}   
+		{% endcapture %}
+  
+{% comment %} 
+################################################################################################# 
+# IncidentTask-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'incident_task' %}
+		{% comment %}IncidentTask-specific variables {% endcomment %}
+		{% comment %}ticket_attributes{% endcomment %}
+		{% assign inputPriority = inputTicketAttributes.priority %}
+		{% assign inputSysId = inputTicketAttributes.sys_id %}
+		{% assign inputOpenedByName = inputTicketAttributes.opened_by_name %}
+		{% assign inputCloseNotes = inputTicketAttributes.close_notes %}
+
+		{% comment %}incident array{% endcomment %}
+		{% assign incidentAttributes = inputTicketAttributes.incident[0] %}
+		{% assign inputIncidentMajor = incidentAttributes.major %}
+		{% assign inputIncidentSlaDue = incidentAttributes.sla_due %}
+		{% assign inputIncidentNumber = incidentAttributes.number %}
+		{% assign inputIncidentCorrelationId = incidentAttributes.correlation_id %}
+		{% assign inputIncidentCategory = incidentAttributes.category %}
+		{% assign inputIncidentSysId = incidentAttributes.sys_id %}
+		{% assign inputIncidentUrgency = incidentAttributes.urgency %}
+		{% assign inputIncidentReferenceNumber = incidentAttributes.reference_number %}
+		{% assign inputIncidentImpact = incidentAttributes.impact %}
+		{% assign inputIncidentContactType = incidentAttributes.contact_type %}
+		{% assign inputIncidentEscalationLevel = incidentAttributes.escaltion_level %}
+
+		{% comment %}affected_user array{% endcomment %}
+		{% assign affectedUserAttributes = inputTicketAttributes.affected_user[0] %}
+		{% assign inputAffectedUserEmail = affectedUserAttributes.email %}
+		{% assign inputAffectedUserUserName = affectedUserAttributes.user_name %}
+		{% assign inputAffectedUserLastName = affectedUserAttributes.last_name %}
+		{% assign inputAffectedUserFirstName = affectedUserAttributes.first_name %}
+		{% assign inputAffectedUserName = affectedUserAttributes.name %}
+		{% assign inputAffectedUserPhone = affectedUserAttributes.phone %}
+
+		{% comment %}assignment_group array{% endcomment %}
+		{% assign assignmentGroupAttributes = inputTicketAttributes.assignment_group[0] %}
+		{% assign inputAssignmentGroupExternalName = assignmentGroupAttributes.external_group_name %}
+		{% assign inputAssignmentGroupSysId = assignmentGroupAttributes.sys_id %}
+		{% assign inputAssignmentGroupName = assignmentGroupAttributes.name %}
+
+		{% comment %}location array{% endcomment %}
+		{% assign locationAttributes = inputTicketAttributes.incident_location[0] %}
+		{% assign inputLocationStreet = locationAttributes.street %}
+		{% assign inputLocationLatitude = locationAttributes.latitude %}
+		{% assign inputLocationLongitude = locationAttributes.longitude %}
+		{% assign inputLocationLocationId = locationAttributes.location_id %}
+		{% assign inputLocationState = locationAttributes.state %}
+		{% assign inputLocationCountry = locationAttributes.country %}
+		{% assign inputLocationName = locationAttributes.name %}
+		{% assign inputLocationCity = locationAttributes.city %}
+		{% assign inputLocationPostalCode = locationAttributes.postalcode %}
+
+		{% comment %}incident_reported_by array{% endcomment %}
+		{% assign incidentReportedByAttributes = inputTicketAttributes.incident_reported_by[0] %}
+		{% assign inputIncReportedByEmail = incidentReportedByAttributes.email %}
+		{% assign inputIncReportedByUserName = incidentReportedByAttributes.user_name %}
+		{% assign inputIncReportedByLastName = incidentReportedByAttributes.last_name %}
+		{% assign inputIncReportedByFirstName = incidentReportedByAttributes.first_name %}
+		{% assign inputIncReportedByName = incidentReportedByAttributes.name %}
+		{% assign inputIncReportedByPhone = incidentReportedByAttributes.phone %}
+
+		{% comment %}incident_company array{% endcomment %}
+		{% assign incidentCompanyAttributes = inputTicketAttributes.parent_company[0] %}
+		{% assign inputIncCompanyName = incidentCompanyAttributes.name %}
+		{% assign inputIncCompanyKrn = incidentCompanyAttributes.krn_number %}
+
+		{% comment %}servicedesk array{% endcomment %}
+		{% assign servicedeskAttributes = inputTicketAttributes.incident_servicedesk[0] %}
+		{% assign inputServiceDeskName = servicedeskAttributes.name %}
+		{% assign inputServiceDeskExternalName = servicedeskAttributes.external_group_name %}
+
+		{% comment %}application_service array{% endcomment %}
+		{% assign applicationServiceAttributes = inputTicketAttributes.service[0] %}
+		{% assign inputApplicationServiceName = applicationServiceAttributes.name %}
+		{% assign inputApplicationServiceExternalName = applicationServiceAttributes.external_name %}
+
+
+		{% comment %}business_service array{% endcomment %}
+		{% assign businessServiceAttributes = inputTicketAttributes.business_service[0] %}
+		{% assign inputBusinessServiceName = businessServiceAttributes.name %}
+
+		{% comment %}affected_ci array{% endcomment %}
+		{% assign affectedCiAttributes = inputTicketAttributes.affected_ci[0] %}
+		{% assign inputAffectedCiSerialNumber = affectedCiAttributes.serial_number %}
+		{% assign inputAffectedCiEnvironment = affectedCiAttributes.environment %}
+		{% assign inputAffectedCiCustomerCiName = affectedCiAttributes.customer_ci_name %}
+		{% assign inputAffectedCiName = affectedCiAttributes.name %}
+
+		{% comment %}incident_ci array{% endcomment %}
+		{% assign incidentCiAttributes = inputTicketAttributes.incident_affected_ci[0] %}
+		{% assign inputIncCiName = incidentCiAttributes.name %}
+		{% assign inputIncCiDatacenter = incidentCiAttributes.datacenter %}
+
+		{% comment %}ci_product_model array{% endcomment %}
+		{% assign ciProductModelAttributes = inputTicketAttributes.ci_product_model[0] %}
+		{% assign inputCiProductModelDescr = ciProductModelAttributes.description %}
+
+		{% comment %} 
+		affected_cis array 
+		This is an array that could contain more than 1 item, available properties are ci_cys_id and ci_name
+		{% endcomment %}
+		{% assign affectedCisAttributes = inputTicketAttributes.affected_cis %}
+
+		{% comment %}IncidentTask-specific variable declaration/assigning {% endcomment %}
+  		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+  		{% else %}
+			{% assign outputComments = "" %}
+  		{% endif %}
+
+  		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %}
+			{% case actionType %}
+				{% when 'New' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Incomplete' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Skipped' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Comment' %}
+					{% if  %}	
+					{% endif %}
+				
+				
+			{% endcase %}
+		{% endcapture %}
+
+{% comment %} 
+################################################################################################# 
+# ChangeTask-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'change_task' %}
+		{% comment %}Changetask-specific variables {% endcomment %}
+		{% comment %}ticket_attributes{% endcomment %}
+		{% assign inputService = inputTicketAttributes.service %}
+		{% assign inputImpact = inputTicketAttributes.impact %}
+		{% assign inputPriority = inputTicketAttributes.priority %}
+		{% assign inputUrgency = inputTicketAttributes.urgency %}
+		{% assign inputState = inputTicketAttributes.state %}
+		{% assign inputPlannedStartDate = inputTicketAttributes.planned_start_date %}
+		{% assign inputTaskType = inputTicketAttributes.task_type %}
+		{% assign inputDescription = inputTicketAttributes.description %}
+		{% assign inputShortDescription = inputTicketAttributes.short_description %}
+		{% assign inputOriginalRequester = inputTicketAttributes.original_requester %}
+		{% assign inputPlannedEndDate = inputTicketAttributes.planned_end_date %}
+
+		{% comment %}affected_ci array{% endcomment %}
+		{% assign affectedCiAttributes = inputTicketAttributes.affected_ci[0] %}
+		{% assign inputAffectedCiDatacenter = affectedCiAttributes.datacenter %}
+		{% assign inputAffectedCiName = affectedCiAttributes.name %}
+
+		{% comment %}assignmentGroup array{% endcomment %}
+		{% assign assignmentGroupAttributes = inputTicketAttributes.assignment_group[0] %}
+		{% assign inputAssignmentGroupExternalGroupName = assignmentGroupAttributes.external_group_name %}
+		{% assign inputAssignmentGroupName = assignmentGroupAttributes.name %}
+
+		{% comment %}change request array{% endcomment %}
+		{% assign changeAttributes = inputTicketAttributes.change_request[0] %}
+		{% assign inputChangeDueDate = changeAttributes.due_date %}
+		{% assign inputChangeAssignmentGroup = changeAttributes.assignment_group %}
+		{% assign inputChangePredefined = changeAttributes.predefined %}
+		{% assign inputChangeReferenceNumber = changeAttributes.reference_number %}
+		{% assign inputChangeNumber = changeAttributes.number %}
+		{% assign inputChangeBusinessReason = changeAttributes.business_reason %}
+		{% assign inputChangeRisk = changeAttributes.risk %}
+		{% assign inputChangeCategory = changeAttributes.category %}
+		{% assign inputChangeType = changeAttributes.type %}
+
+		{% comment %}change request company array{% endcomment %}
+		{% assign changeRequestCompanyAttributes = inputTicketAttributes.parent_company[0] %}
+		{% assign inputChangeCompanyKrnNumber = changeRequestCompanyAttributes.krn_number %}
+		{% assign inputChangeCompanyName = changeRequestCompanyAttributes.name %}
+
+		{% comment %}change request location array{% endcomment %}
+		{% assign changeLocationAttributes = inputTicketAttributes.change_request_location[0] %}
+		{% assign inputChangeLocationCity = changeLocationAttributes.city %}
+		{% assign inputChangeLocationLocationId = changeLocationAttributes.location_id %}
+		{% assign inputChangeLocationPostalcode = changeLocationAttributes.postalcode %}
+		{% assign inputChangeLocationName = changeLocationAttributes.name %}
+		{% assign inputChangeLocationStreet = changeLocationAttributes.street %}
+		{% assign inputChangeLocationCountry = changeLocationAttributes.country %}
+
+		{% comment %}change request originalrequester array{% endcomment %}
+		{% assign changeOriginalRequesterAttributes = inputTicketAttributes.change_request_original_requester[0] %}
+		{% assign inputChangeOrgRequesterEmail = changeOriginalRequesterAttributes.email %}
+		{% assign inputChangeOrgRequesterLastName = changeOriginalRequesterAttributes.last_name %}
+		{% assign inputChangeOrgRequesterPhone = changeOriginalRequesterAttributes.phone %}
+		{% assign inputChangeOrgRequesterFirstName = changeOriginalRequesterAttributes.first_name %}
+		{% assign inputChangeOrgRequesterUserName = changeOriginalRequesterAttributes.user_name %}
+		{% assign inputChangeOrgRequesterName = changeOriginalRequesterAttributes.name %}
+
+		{% comment %}change request requested by array{% endcomment %}
+		{% assign changeRequestedByAttributes = inputTicketAttributes.change_request_requested_by[0] %}
+		{% assign inputChangeRequestedByEmail = changeRequestedByAttributes.email %}
+		{% assign inputChangeRequestedByLastName = changeRequestedByAttributes.last_name %}
+		{% assign inputChangeRequestedByPhone = changeRequestedByAttributes.phone %}
+		{% assign inputChangeRequestedByFirstName = changeRequestedByAttributes.first_name %}
+		{% assign inputChangeRequestedByUserName = changeRequestedByAttributes.user_name %}
+		{% assign inputChangeRequestedByName = changeRequestedByAttributes.name %}
+
+		{% comment %}opened by array{% endcomment %}
+		{% assign openedByAttributes = inputTicketAttributes.opened_by[0] %}
+		{% assign inputOpenedByEmail = openedByAttributes.email %}
+		{% assign inputOpenedByUserName = openedByAttributes.user_name %}
+
+
+  		{% comment %}ChangeTask-specific variable declaration/assigning {% endcomment %}
+  		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+  		{% else %}
+			{% assign outputComments = "" %}
+  		{% endif %}
+
+  		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+  		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %}
+
+			{% case actionType %}
+				{% when 'New' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'In Progress' %}
+					{% if  %}	
+					{% endif %}
+				
+			{% endcase %}
+		{% endcapture %}
+
+{% comment %} 
+################################################################################################# 
+# ScTask-property capture 
+#################################################################################################
+{% endcomment %}
+  	{% when 'sc_task' %}
+		{% comment %}CatalogTask-specific variables {% endcomment %}
+		{% comment %}ticket_attributes{% endcomment %}
+		{% assign inputOla = inputTicketAttributes.ola %}
+		{% assign inputUrgency = inputTicketAttributes.urgency %}
+		{% assign inputPriority = inputTicketAttributes.priority %}
+		{% assign inputShortDescription = inputTicketAttributes.short_description %}
+		{% assign inputImpact = inputTicketAttributes.impact %}
+		{% assign inputSysId = inputTicketAttributes.sys_id %}
+		{% assign inputCloseNotes = inputTicketAttributes.close_notes %}
+
+		{% comment %}assignment group attributes{% endcomment %}
+		{% assign assignmentgroupAttributes = inputTicketAttributes.assignment_group[0] %}
+		{% assign inputAssignmentGroupExternalGroupName = assignmentgroupAttributes.external_group_name %}
+		{% assign inputAssignmentGroupSysId = assignmentgroupAttributes.sys_id %}
+		{% assign inputAssignmentGroupName = assignmentgroupAttributes.name %}
+
+		{% comment %}ritm attributes{% endcomment %}
+		{% assign ritmAttributes = inputTicketAttributes.request_item[0] %}
+		{% assign inputRitmReferenceNumber = ritmAttributes.reference_number %}
+		{% assign inputRitmNumber = ritmAttributes.number %}
+		{% assign inputRitmSysId = ritmAttributes.sys_id %}
+		{% assign inputRitmAssignmentGroup = ritmAttributes.assignment_group %}
+		{% assign inputRitmAssignmentGroupSysId = ritmAttributes.assignment_group_sys_id %}
+		{% assign inputRitmSla = ritmAttributes.sla %}
+		{% assign inputRitmItem = ritmAttributes.item %}
+		{% assign inputRitmAffectedCi = ritmAttributes.affected_ci %}
+		{% assign inputRitmRequestNumber = ritmAttributes.request_number %}
+
+		{% comment %}request item company attributes{% endcomment %}
+		{% assign ritmCompanyAttributes = inputTicketAttributes.parent_company[0] %}
+		{% assign inputRitmCompanyName = ritmCompanyAttributes.name %}
+		{% assign inputRitmCompanyKrnNumber = ritmCompanyAttributes.krn_number %}
+
+		{% comment %}request item location attributes{% endcomment %}
+		{% assign ritmLocationAttributes = inputTicketAttributes.request_item_location[0] %}
+		{% assign inputRitmLocationPostalcode = ritmLocationAttributes.postalcode %}
+		{% assign inputRitmLocationLocationId = ritmLocationAttributes.location_id %}
+		{% assign inputRitmLocationCountry = ritmLocationAttributes.country %}
+		{% assign inputRitmLocationCity = ritmLocationAttributes.city %}
+		{% assign inputRitmLocationName = ritmLocationAttributes.name %}
+		{% assign inputRitmLocationLongitude = ritmLocationAttributes.longitude %}
+		{% assign inputRitmLocationLatitude = ritmLocationAttributes.latitude %}
+		{% assign inputRitmLocationStreet = ritmLocationAttributes.street %}
+
+		{% comment %}request item requested by attributes{% endcomment %}
+		{% assign ritmRequestedByAttributes = inputTicketAttributes.request_item_requested_by[0] %}
+		{% assign inputRitmRequestedByFirstName = ritmRequestedByAttributes.first_name %}
+		{% assign inputRitmRequestedByName = ritmRequestedByAttributes.name %}
+		{% assign inputRitmRequestedByPhone = ritmRequestedByAttributes.phone %}
+		{% assign inputRitmRequestedByUserName = ritmRequestedByAttributes.user_name %}
+		{% assign inputRitmRequestedByLastName = ritmRequestedByAttributes.last_name %}
+		{% assign inputRitmRequestedByEmail = ritmRequestedByAttributes.email %}
+
+		{% comment %}catalog task requested for attributes{% endcomment %}
+		{% assign requestedForAttributes = inputTicketAttributes.requested_for[0] %}
+		{% assign inputRequestedForFirstName = requestedForAttributes.first_name %}
+		{% assign inputRequestedForName = requestedForAttributes.name %}
+		{% assign inputRequestedForPhone = requestedForAttributes.phone %}
+		{% assign inputRequestedForUserName = requestedForAttributes.user_name %}
+		{% assign inputRequestedForLastName = requestedForAttributes.last_name %}
+		{% assign inputRequestedForEmail = requestedForAttributes.email %}
+
+
+  		{% comment %}ScTask-specific variable declaration/assigning {% endcomment %}
+  		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+  		{% else %}
+			{% assign outputComments = "" %}
+  		{% endif %}
+
+  		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+
+  		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %}
+			{% case actionType %}
+				{% when 'New' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Awaiting Review' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'closed' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed Skipped' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Closed Incomplete' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Comment' %}
+					{% if  %}	
+					{% endif %}					
+			{% endcase %}
+		{% endcapture %}
+
+{% comment %} 
+################################################################################################# 
+# Alert-property capture 
+#################################################################################################
+{% endcomment %}
+	{% when 'em_alert' %}
+		{% comment %}Alert-specific-specific variables {% endcomment %}
+		{% assign inputKrnNumber = inputTicketAttributes.krn_number %}
+		{% assign inputAssignmentGroup = inputTicketAttributes.assignment_group %}
+		{% assign inputSeverity = inputTicketAttributes.severity %}
+		{% assign inputIncident = inputTicketAttributes.incident %}
+		{% assign inputMessageKey = inputTicketAttributes.message_key %}
+		{% assign inputEventSource = inputTicketAttributes.event_source %}
+		{% assign inputCompanyName = inputTicketAttributes.company_name %}
+		
+
+		{% comment %}RequestItem-specific variable declaration/assigning {% endcomment %}
+		{% if inputComment != nil and inputComment != '' %}
+			{% assign outputComments = inputComment %}
+		{% else %}
+			{% assign outputComments = "" %}
+		{% endif %}
+
+		{% comment %}custom logic to assign complex variables {% endcomment %}
+
+
+		{% comment %}capture requestBodyText {% endcomment %}
+		{% capture requestBodyText %} 
+			{% case actionType %}
+				{% when 'Open' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Worknote' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Closed_Alert' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Flapping Alert' %}
+					{% if  %}	
+					{% endif %}
+					
+				{% when 'Open_Alert' %}
+					{% if  %}	
+					{% endif %}
+				
+				{% when 'Reopen_Alert' %}
+					{% if  %}	
+					{% endif %}		
+			{% endcase %}   
+		{% endcapture %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} 
+################################################################################################# 
+# End of Process specific code & variable declaration Section 
+#################################################################################################
+{% endcomment %}
+
+{% endcase %}
+{% comment %} 
+################################################################################################# 
+# Liquid output JSON message 
+#################################################################################################
+{% endcomment %}
+{%comment%} REST {%endcomment%}
+{
+ 
+    "fullUrl": "{{ inputBaseUrl | Append: 'sync/api/v1/ipwc/incidents/partial/' | Append: inputMapInputParamJson.encodedReferenceNumber | Replace: '\\' , '\\' | Replace: '\"', '\"' }}",
+    "httpMethod":"PATCH",
+    "headers": {
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json"
+    },
+    "requestBody": {{ requestBodyText }}
+}
+{%comment%} MAIL {%endcomment%}
+
+{
+	"cc": "",
+	"subject": "{{mailSubject | Replace: '\\' , '\\' | Replace: '\"', '\"'}}",
+	"body": "{{mailBody | Replace: '\\' , '\\' | Replace: '\"', '\"'}}",
+	"importance": "normal"
+  }

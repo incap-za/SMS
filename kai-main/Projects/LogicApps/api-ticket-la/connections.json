@@ -1,0 +1,62 @@
+{
+  "managedApiConnections": {},
+  "serviceProviderConnections": {
+    "sql-kpnb2b": {
+      "displayName": "sql-kpnb2b",
+      "parameterSetName": "connectionString",
+      "parameterValues": {
+        "connectionString": "@appsetting('app-sql-kpnb2b-conn')"
+      },
+      "serviceProvider": {
+        "id": "/serviceProviders/sql"
+      }
+    },
+    "sql-kpnsdh": {
+      "displayName": "sql-kpnsdh",
+      "parameterSetName": "connectionString",
+      "parameterValues": {
+        "connectionString": "@appsetting('app-sql-kpnsdh-conn')"
+      },
+      "serviceProvider": {
+        "id": "/serviceProviders/sql"
+      }
+    },
+    "sql-kpnsdh-red": {
+      "displayName": "sql-kpnsdh-red",
+      "parameterSetName": "connectionString",
+      "parameterValues": {
+        "connectionString": "@appsetting('app-sql-kpnsdh-red-conn')"
+      },
+      "serviceProvider": {
+        "id": "/serviceProviders/sql"
+      }
+    },
+    "keyVault": {
+      "displayName": "keyvault",
+      "parameterSetName": "ManagedServiceIdentity",
+      "parameterValues": {
+        "VaultUri": "@appsetting('app-keyvault-uri')",
+        "authProvider": {
+          "Type": "ManagedServiceIdentity"
+        }
+      },
+      "serviceProvider": {
+        "id": "/serviceProviders/keyVault"
+      }
+    },
+    "zsmart-sftp-out": {
+      "displayName": "zsmart-sftp-out",
+      "parameterValues": {
+        "disableConnectionCache": "False",
+        "portNumber": "2222",
+        "rootDirectory": "@appsetting('app-zsmart-sftp-rootDirectory')",
+        "sshHostAddress": "@appsetting('app-zsmart-sftp-sshHostAddress')",
+        "sshPrivateKey": "@appsetting('app-ws-zsmart-ftp')",
+        "username": "@appsetting('app-zsmart-sftp-username')"
+      },
+      "serviceProvider": {
+        "id": "/serviceProviders/Sftp"
+      }
+    }
+  }
+}

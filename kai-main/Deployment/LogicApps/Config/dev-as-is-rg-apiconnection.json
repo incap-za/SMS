@@ -1,0 +1,38 @@
+"managedApiConnections": {
+    "office365": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/office365"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-as-is-rg/providers/Microsoft.Web/connections/office365"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/office365/53950d5ddd8049d9a95b2efee6feca60"
+    },
+    "sharepointonline": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-as-is-rg/providers/Microsoft.Web/connections/sharepointonline"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/sharepointonline/a6e45f647f8043c5bb5d81ccf0a0366e"
+    },
+    "webcontents": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/webcontents"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-as-is-rg/providers/Microsoft.Web/connections/webcontents"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/webcontents/2d23c73805d0404ea08169d27bdbf6c0"
+    }
+},

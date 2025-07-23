@@ -1,0 +1,25 @@
+{
+  "environment": "prd",
+  "subscriptionId": "99eb19fb-0990-4ba8-b21d-cdb595f20b84",
+  "sqlConnection": {
+    "name": "sql",
+    "server": "kaiprdsql01.database.secure.windows.net",
+    "database": "kai-prd-sql-db",
+    "userName": "gen-devops-usr-prd",
+    "password": "db-kaisqldb-devops"
+  },
+  "datahubGreen": {
+    "name": "sql",
+    "server": "sndmbmsql01.database.windows.net",
+    "database": "bm-sndatahub-db",
+    "userName": "gen-devops-usr-prd",
+    "password": "db-kaisqldb-devops"
+  },
+  "dataHubRed": {
+    "name": "sql",
+    "server": "sndhredprdsql01.database.windows.net",
+    "database": "redprd-sndatahub-db",
+    "userName": "gen-devops-usr-prd",
+    "password": "db-kaisqldb-devops"
+  }
+}

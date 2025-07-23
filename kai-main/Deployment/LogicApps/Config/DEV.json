@@ -1,0 +1,113 @@
+{
+  "environment": "dev",
+  "environmentFunctionApp": "dev",
+  "defaultEnabled": "Enabled",
+  "subscriptionId": "fce5effc-b838-4c00-9b37-38fd1465e108",
+  "serviceNowGreen": {
+    "environment": "dev",
+    "baseUrl": "https://kpndev.service-now.com/",
+    "userName": "dev.int.azure",
+    "password": "ws-kpnsngr-dev-int-azure"
+  },
+  "serviceNowGreenEvent": {
+    "environment": "dev",
+    "baseUrl": "https://kpndev.service-now.com/",
+    "userName": "dev.int.event",
+    "password": "ws-kpnsngr-dev-int-event"
+  },
+  "serviceNowGreenTask": {
+    "environment": "dev",
+    "baseUrl": "https://kpndev.service-now.com/",
+    "userName": "dev.int.task",
+    "password": "ws-kpnsngr-dev-int-task"
+  },
+  "serviceNowRed": {
+    "environment": "dev",
+    "baseUrl": "https://dividerdev.service-now.com/",
+    "userName": "DataHub-Dev",
+    "password": "ws-kpnsnred-dev-int-azure"
+  },
+  "sqlConnection": {
+    "name": "sql-kpnb2b",
+    "server": "kaidevsql01.database.windows.net",
+    "database": "kai-dev-sql-db",
+    "userName": "gen-la-usr-dev",
+    "password": "db-kaisqldb-genlausrdev"
+  },
+  "snDataHubSqlConnection": {
+    "name": "sql-kpnsdh",
+    "server": "sndmuatsql01.database.windows.net",
+    "database": "dev-sndatahub-db",
+    "userName": "AzureLA_acc_sndmsql",
+    "password": "db-sndatahub-azurela"
+  },
+  "snDataHubRedSqlConnection": {
+    "name": "sql-kpnsdh-red",
+    "server": "sndhrednonprdsql01.database.windows.net",
+    "database": "reddev-sndatahub-db",
+    "userName": "AzureLA_nonprd_sndhredsql",
+    "password": "db-sndatahubred-azurela"
+  },
+  "kvConnection": {
+    "name": "keyvault",
+    "vaultName": "kai-dev-shared-kv",
+    "clientId": "b9947fb9-aed1-4b8f-ba1f-4490b645932d",
+    "clientSecret": "ad-callersecret",
+    "tenantId": "kpnbv.onmicrosoft.com",
+    "grantType": "client_credentials"
+  },
+  "sftpConnectionCommondata": {
+    "name": "sftpwithssh-kpnmid-common",
+    "userName": "SFTP_Azure_UAT",
+    "password": "ws-kpnnewmidserver",
+    "serverAddress": "az-kpn-snow-d-2.kpnnl.local",
+    "serverPort": "22"
+  },
+  "sftpConnectionCmdbdata": {
+    "name": "sftpwithssh-kpnmid-cmdb",
+    "userName": "SFTP_Azure_UAT",
+    "password": "ws-kpnnewmidserver",
+    "serverAddress": "az-kpn-snow-d-0.kpnnl.local",
+    "serverPort": "22"
+  },
+  "sftpConnectionOldMid": {
+    "userName": "ACC_SNMID_Azure_SFTP",
+    "password": "ws-kpnmidserver",
+    "serverAddress": "SWDCLR0131.kpnnl.local",
+    "serverPort": "22"
+  },
+  "smtp": {
+    "name": "smtp",
+    "serverAddress": "195.121.65.140",
+    "port": "2525",
+    "mailFrom": "b2b-mail-dev@kpn.com",
+    "mailTo": "servicenow-io@kpn.com",
+    "mailOb": "b2b-mail-ob-dev@kpn.com",
+    "mailFromEvents4sn": "events4sn-dev@kpn.com"
+  },
+  "oAuth": {
+    "audience": "5a7a3ca5-d546-41b0-9975-a24b0cb19e17",
+    "clientId": "b9947fb9-aed1-4b8f-ba1f-4490b645932d"
+  },
+  "easyAuth":{
+    "audience":"5a7a3ca5-d546-41b0-9975-a24b0cb19e17",
+    "identity":"/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourcegroups/dev-ticket-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/dev-ticket-uai"
+
+  },
+  "zsmart":{
+    "FtpServer":"datatransfer.kpn.org",
+    "rootDirectoryOut":"/msft/out",
+    "rootDirectoryIn":"/msft/in",
+    "username":"lzu-snow2crush-11464"
+  },
+  "serviceNowPurple": {
+    "environment": "dev",
+    "baseUrl": "https://routitdev.service-now.com/",
+    "userName": "AzureIntegrationAPI_dev",
+    "password": "ws-kpnsnpr-dev"
+  },
+  "adfPath": {
+    "resourcegroupName": "kai-dev-adf-rg",
+    "factoryName": "kai-dev-adf-kpnsngr-dhsql"
+  }
+}

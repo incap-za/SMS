@@ -1,0 +1,14 @@
+"managedApiConnections": {
+    "azuredatafactory": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/azuredatafactory"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-datahub-rg/providers/Microsoft.Web/connections/azuredatafactory"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/azuredatafactory/d277df5629334a0f9fa2e255aec9d6e0"
+    }
+},

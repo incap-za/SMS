@@ -1,0 +1,406 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "metadata": {
+        "description": "API Management name"
+      },
+      "minLength": 1,
+      "type": "string"
+    },
+    "publisherEmail": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The email address of the owner of the service"
+      }
+    },
+    "publisherName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The name of the owner of the service"
+      }
+    },
+    "notificationSenderEmail": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The name of the owner of the service"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "Developer",
+        "Standard",
+        "Premium"
+      ],
+      "defaultValue": "Developer",
+      "metadata": {
+        "description": "The pricing tier of this API Management service"
+      }
+    },
+    "skuCount": {
+      "type": "string",
+      "allowedValues": [
+        "1",
+        "2"
+      ],
+      "defaultValue": "1",
+      "metadata": {
+        "description": "The instance size of this API Management service."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "apiPolicy": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "API level policy to implement IP restrictions"
+      }
+    },
+    "nvBasicAuth_AccessControlAllowOrigin": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication named value pair to store response header Access-Control-Allow-Origin value"
+      }
+    },
+    "nvBasicAuth_ClientId": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication named value pair to store client id"
+      }
+    },
+    "nvBasicAuth_ClientSecret": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication named value pair to store client secret"
+      }
+    },
+    "nvBasicAuth_ResourceId": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication named value pair to store resource id"
+      }
+    },
+    "nvBasicAuth_FunctionAppName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication named value pair to store function url; provide only function name"
+      }
+    },
+    "basicAuthPolicy": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Basic authentication policy to implement basic authentication"
+      }
+    },
+    "paramAuthPolicy": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Parameter authentication policy to implement authentication based on username+password url-query parameters"
+      }
+    },
+    "headerAuthPolicy": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "SOAP Header authentication policy to implement authentication based on Username+Password in the SOAP header"
+      }
+    },
+    "hostnameConfigurations": {
+      "type": "array",
+      "metadata": {
+        "description": "Host name configuration array of object - proxy and portal settings"
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "APIM private VNET name"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "app-apimv2-subnet",
+      "metadata": {
+        "description": "APIM private sub net name"
+      }
+    }
+  },
+  "variables": {
+    "varVirtualNetworkConfiguration": {
+      "subnetResourceId": "[resourceId('sharedservices-rg', 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]",
+      "location": "[string(resourceGroup().location)]"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-01",
+      "name": "[parameters('apiManagementServiceName')]",
+      "type": "Microsoft.ApiManagement/service",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "location": "[parameters('location')]",
+      "tags": {},
+      "sku": {
+        "name": "[parameters('sku')]",
+        "capacity": "[parameters('skuCount')]"
+      },
+      "properties": {
+        "additionalLocations": null,
+        "certificates": null,
+        "customProperties": {
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11": "False",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False"
+        },
+        "hostnameConfigurations": "[parameters('hostnameConfigurations')]",
+        "notificationSenderEmail": "[parameters('notificationSenderEmail')]",
+        "publisherEmail": "[parameters('publisherEmail')]",
+        "publisherName": "[parameters('publisherName')]",
+        "virtualNetworkConfiguration": "[if(equals(parameters('vnetName'), ''), json('null'), variables('varVirtualNetworkConfiguration'))]",
+        "virtualNetworkType": "[if(equals(parameters('vnetName'), ''), 'None', 'Internal')]"
+      }
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_AccessControlAllowOrigin",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'basicauth-accesscontrolalloworigin')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_AccessControlAllowOrigin",
+        "value": "[parameters('nvBasicAuth_AccessControlAllowOrigin')]",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_ClientId",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'BasicAuth_ClientId')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_ClientId",
+        "value": "[parameters('nvBasicAuth_ClientId')]",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_ClientSecret",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'BasicAuth_ClientSecret')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_ClientSecret",
+        "value": "[parameters('nvBasicAuth_ClientSecret')]",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_ResourceId",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'BasicAuth_ResourceId')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_ResourceId",
+        "value": "[parameters('nvBasicAuth_ResourceId')]",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_AuthorizationServer",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'BasicAuth_AuthorizationServer')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_AuthorizationServer",
+        "value": "https://login.microsoftonline.com/d7790549-8c35-40ea-ad75-954ac3e86be8/oauth2/token",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "BasicAuth product named value - BasicAuth_FunctionAppUrl",
+      "type": "Microsoft.ApiManagement/service/properties",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'BasicAuth_FunctionAppUrl')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuth_FunctionAppUrl",
+        "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', parameters('nvBasicAuth_FunctionAppName'),  'BasicAuth'), '2015-08-01').trigger_url]",
+        "tags": null,
+        "secret": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "Creating API IP white listing policy",
+      "type": "Microsoft.ApiManagement/service/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'policy')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "policyContent": "[parameters('apiPolicy')]",
+        "contentFormat": "xml"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "Create/update BasicAuth product",
+      "type": "Microsoft.ApiManagement/service/products",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'basicauthproduct')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "BasicAuthProduct",
+        "description": "Used as entry product for all API require basic authentication",
+        "terms": "Free for all",
+        "subscriptionRequired": false,
+        "approvalRequired": null,
+        "subscriptionsLimit": null,
+        "state": "published"
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "Create/update HeaderAuth product",
+      "type": "Microsoft.ApiManagement/service/products",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'headerauthproduct')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "HeaderAuthProduct",
+        "description": "Test for product with authentication on soap Header, initially only to be used for Zsmart webhook-call",
+        "terms": "Only to be used for Zsmart webhooks!",
+        "subscriptionRequired": false,
+        "approvalRequired": null,
+        "subscriptionsLimit": null,
+        "state": "published"
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "Create/update ParamAuth product",
+      "type": "Microsoft.ApiManagement/service/products",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'paramauthproduct')]",
+      "apiVersion": "2018-06-01-preview",
+      "scale": null,
+      "properties": {
+        "displayName": "ParamAuthProduct",
+        "description": "Test for product with authentication on parameters, initially only to be used for JIRA webhook-call",
+        "terms": "Only to be used for JIRA webhooks!",
+        "subscriptionRequired": false,
+        "approvalRequired": null,
+        "subscriptionsLimit": null,
+        "state": "published"
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+      ]
+    },
+    {
+      "comments": "Update/create BasicAuth product policy",
+      "type": "Microsoft.ApiManagement/service/products/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'basicauthproduct', '/', 'policy')]",
+      "apiVersion": "2018-06-01-preview",
+      "properties": {
+        "policyContent": "[parameters('basicAuthPolicy')]",
+        "contentFormat": "rawxml"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]",
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementServiceName'), 'basicauthproduct')]"
+      ]
+    },
+    {
+      "comments": "Update/create HeaderAuth product policy",
+      "type": "Microsoft.ApiManagement/service/products/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'headerauthproduct', '/', 'policy')]",
+      "apiVersion": "2018-06-01-preview",
+      "properties": {
+        "policyContent": "[parameters('headerAuthPolicy')]",
+        "contentFormat": "rawxml"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]",
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementServiceName'), 'headerauthproduct')]"
+      ]
+    },
+    {
+      "comments": "Update/create ParamAuth product policy",
+      "type": "Microsoft.ApiManagement/service/products/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', 'paramauthproduct', '/', 'policy')]",
+      "apiVersion": "2018-06-01-preview",
+      "properties": {
+        "policyContent": "[parameters('paramAuthPolicy')]",
+        "contentFormat": "rawxml"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]",
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementServiceName'), 'paramauthproduct')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "Status": {
+      "type": "string",
+      "value": "Success!"
+    }
+  }
+}

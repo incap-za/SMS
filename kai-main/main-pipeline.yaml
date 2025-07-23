@@ -1,0 +1,294 @@
+# B2B Integrations Development Pipeline
+# This pipeline will be executed if a branch is merged to the DEV, ACC or master branch
+
+trigger:
+  branches:
+    include:
+    - DEV      # PL will be triggered after Merge to DEV
+    - ACC      # PL will be triggered after Merge to ACC
+    - master      # PL will be triggered after Merge to master
+  paths:
+    include:
+    - /*        # path filter is added to avoid pipeline run on branch creation
+    exclude:    # excluded below folders as we have seperate pipeline for Function app
+    - Projects/Functions/shared-funcappv3/*
+    - Projects/Functions/shared-funcapp/*
+    - Projects/Functions/kai.shared/*
+
+name: Build-$(rev:rrr)-$(Build.SourceBranchName)
+stages:
+- stage: 'Build'  # This stage will collect all the necessary artifacts
+  jobs:
+  - job: Job_1
+    displayName: Collect necessary files
+    pool: kai-acc-shared-agentpool
+    steps:
+    - checkout: self  # Checkout repo
+      fetchDepth: 0 # necessary to set correct Shallow fetch
+    # ============ Get PAT token for authentication  access ================
+    #- task: AzureKeyVault@2
+    #  displayName: Get PAT token from Key Vault
+    # inputs:
+    #    azureSubscription: 'azure-dev-connection'
+    #    KeyVaultName: 'kai-dev-shared-kv'
+    #    SecretsFilter: 'ad-pat-token'
+    #    RunAsPreJob: true
+    # ============ copy Files necessary for deployment ================
+    - task: CopyFiles@2
+      displayName: Get LogicApps Deployment Files
+      inputs:
+        SourceFolder: Deployment/LogicApps
+        Contents: >
+          **
+        TargetFolder: $(Build.ArtifactStagingDirectory)/Deployment/LogicApps
+    - task: CopyFiles@2
+      displayName: Get APIManagement Deployment Files
+      inputs:
+        SourceFolder: Deployment/APIManagement
+        Contents: >
+          **
+        TargetFolder: $(Build.ArtifactStagingDirectory)/Deployment/APIManagement
+    - task: CopyFiles@2
+      displayName: Get EnvironmentSetup Deployment Files
+      inputs:
+        SourceFolder: Deployment/EnvironmentSetup
+        TargetFolder: $(Build.ArtifactStagingDirectory)/Deployment/EnvironmentSetup
+    - task: CopyFiles@2
+      displayName: Get SQL Deployment Files
+      inputs:
+        SourceFolder: Deployment/SQLDeployment
+        TargetFolder: $(Build.ArtifactStagingDirectory)/Deployment/SQLDeployment
+    # ============ Get the changed files ================
+    - task: AzurePowerShell@5
+      displayName: Get the changed files for commit/PR/master
+      inputs:
+        azureSubscription: 'azure-dev-connection'
+        ScriptType: InlineScript
+        Inline: |
+          $branchName = "$(Build.SourceBranchName)"
+
+          Write-Host "This is the build for branch: $($branchName)"
+
+          Write-Host "Checking last merge into: $($branchName)"
+          $pattern = "Merged PR (.*?):"
+          $lastMergeString = git log origin/$branchName --merges --oneline -1
+          $pullRequest = [regex]::match($lastMergeString, $pattern).Groups[1].Value
+          Write-Host "pullRequest:$($pullRequest)";
+          
+          Write-Host "Obtain access token..."
+          $accessToken = (Get-AzAccessToken).Token
+
+          $headers = @{
+            Accept = "application/json"
+            Authorization = "Bearer $accessToken"
+          }
+
+          $organization = "kpn";
+          $project = "ServiceNow IO";
+          $repoId = "kai-main";
+          $fullUrl = "https://dev.azure.com/$organization/"+[uri]::EscapeDataString($project)+"/_apis/git/repositories/$repoId/pullRequests/$pullRequest";
+          Write-Host "fullUrl:$($fullUrl)";
+
+          $prDetails = Invoke-RestMethod -Method get -Headers $headers -Uri $fullUrl
+          $sourceRefName=$prDetails.sourceRefName
+          Write-Host "prDetails.sourceRefName=" $sourceRefName
+
+          Write-Host "Fetching files changed as part of this feature branch......"
+
+          $basePath = "$(Build.SourcesDirectory)"
+
+          $artifactStagingDirectory = "$(Build.ArtifactStagingDirectory)"
+
+          Write-Host "Basepath = $basePath , staging Dir = $artifactStagingDirectory"
+
+          Write-Host "Build.SourceVersion = $(Build.SourceVersion)"
+
+          cd $basePath
+
+            if($branchName.Equals("master"))
+            {
+                Write-Host "Retrieving changed files for the merge into main....."
+                $editedFiles = git diff HEAD HEAD~ --name-only
+            }
+            else
+            {
+                #To replace original PR 'refs/heads/' to 'origin/' (avoiding error "unknown revision or path not in the working tree")
+                #NOTE: a straight assignment of $(sourceFeatureBranchName) to a variable didn't work (resulted in error + NULL-value) => use echo
+                #$sourceFeatureBranchNameTemp = echo $(sourceFeatureBranchName)
+                $sourceFeatureBranchNameOrigin = $sourceRefName.Replace('refs/heads/','origin/')
+
+                Write-Host "Retrieving changed files for the commit/PR for feature/hotfix branch: " $sourceFeatureBranchNameOrigin
+                
+                $editedFiles = git diff origin/master...$sourceFeatureBranchNameOrigin --name-only
+
+                Write-Host $editedFiles
+            }         
+
+            foreach($editedFile in $editedFiles)
+            {
+                $pas1FileFullPath = "$($basePath)\$($editedFile)"
+
+                if($pas1FileFullPath.EndsWith(".ps1") -and $editedFile.StartsWith("DeploymentScripts/") )
+                {
+
+                    $ps1FileName = Split-Path $pas1FileFullPath -leaf
+                    $ps1FilePath = $editedFile
+                    Write-Host "ps1 file path : $($ps1FilePath)"
+                    # Copy the deployment ps1 file to a dedicated location so Azure CLI can be used for deployment
+                    # subfolders so the number of folders is equal for local deployment
+                    $null=(New-Item -ItemType Directory -Path "$artifactStagingDirectory\DeploymentScripts\pipeline\sub")
+                    Copy-item -Path $pas1FileFullPath -Destination $artifactStagingDirectory\DeploymentScripts\pipeline\sub\deploy.ps1 -Force
+
+                    # Read the ps1 file for the logicapp folder names, so the complete folder(s) can be copied
+                    $laArray=@()
+                    $apiArray=@()
+                    Write-Host "Checking for Deployment files"
+                    foreach($line in Get-Content $ps1FilePath) {
+                        $line = $line.Trim()
+                        if($line.StartsWith(".\DeployWF") -or $line.StartsWith(".\DeployLA") -or $line.StartsWith(".\DeployAppSetting")){
+                            $regex = '(?<=-LogicAppFolder\s).+?(?=\s)'
+                            $match = [regex]::Match($line, $regex)
+                            if ($match.Success) {
+                                $result = $match.Value.Replace('"','')
+                                Write-Host "Found LogicAppFolder: $result"
+                                $laArray += $result
+                              }
+                        }
+                        if($line.StartsWith(".\DeployApi")){
+                            $regex = '(?<=-SwaggerFileName\s").+?(?=")'
+                            $match = [regex]::Match($line, $regex)
+                            if ($match.Success) {
+                                $result = $match.Value.Replace('"','')
+                                Write-Host "Found SwaggerFile: $result"
+                                $apiArray += $result
+                              }
+                        }
+                    }
+                    $laArray = $laArray |Select-Object -Unique # remove double logic app names
+                    $apiArray = $apiArray |Select-Object -Unique # remove double api names
+                    
+                    foreach($laName in $laArray){
+                      Write-Host "Copying LogicApp folder $laName"
+                      $null=(New-Item -ItemType Directory -Path "$artifactStagingDirectory\Projects\LogicApps\$laName")
+                      Copy-item -Path $basePath\Projects\LogicApps\$laName\* -Destination $artifactStagingDirectory\Projects\LogicApps\$laName -Recurse -Force
+                    }
+                    
+                    $test=0
+                    foreach($apiName in $apiArray){
+                      Write-Host "Copying SwaggerFile $apiName"
+                      if ($test -eq 0){
+                        $null=(New-Item -ItemType Directory -Path "$artifactStagingDirectory\Projects\APIs")
+                      }
+                      Copy-item -Path $basePath\Projects\APIs\$apiName -Destination $artifactStagingDirectory\Projects\APIs\$apiName -Recurse -Force
+                      $test=1
+                    }
+                    if ($test -eq 1){
+                      Copy-item -Path $basePath\Projects\APIs\_apiMappings.json -Destination $artifactStagingDirectory\Projects\APIs\_apiMappings.json -Recurse -Force
+                    }
+
+                    break
+                }
+            }
+
+            if($ps1FileName -match "CD-Only")
+            {
+                Write-Host "Copying additional deployment folders for CD-Only to Build Staging directory........"
+
+                #Making subfolders as these doesn't exists
+                md -path $artifactStagingDirectory\Projects\APIs
+                md -path $artifactStagingDirectory\DeploymentScripts
+
+                Copy-item -Path $basePath\Projects\APIs\* -Destination $artifactStagingDirectory\Projects\APIs -Recurse -Force    
+                Copy-item -Path $basePath\DeploymentScripts\* -Destination $artifactStagingDirectory\DeploymentScripts -Recurse -Force
+                Copy-item -Path $basePath\Projects\LogicApps\* -Destination $artifactStagingDirectory\Projects\LogicApps -Recurse -Force
+                New-Item -ItemType File -Path $artifactStagingDirectory\$ps1FilePath -Force
+                Copy-item -Path $pas1FileFullPath -Destination $artifactStagingDirectory\$ps1FilePath -Force
+            }
+            else
+            {
+                Write-Host "Copying changed deployment artifact for CI-CD Build Staging directory........"
+
+                foreach($editedFile in $editedFiles)
+
+                        {
+                            $filePath = "$($basePath)\$($editedFile)"
+                            $filePath = $filePath -replace '[\[\]*\~;()%?@]', '`$&'
+                            $destinationPath = "$($artifactStagingDirectory)\$($editedFile)"
+                            $destinationPath = $destinationPath -replace '[\[\]*\~;()%?@]', '`$&'
+                            if(Test-Path -Path $filePath)
+                            {
+                                Write-Host "Copying $($filePath) to $($destinationPath)"
+                                $null=(New-Item -ItemType File -Path $destinationPath -Force)
+                                Copy-item -Path $filePath -Destination $destinationPath -Force
+                            }
+                            else 
+                            {
+                                Write-Host ">>> ERROR: $($filePath) isnt there and can't be copied"
+                            }
+                        }
+            }
+        errorActionPreference: stop
+        azurePowerShellVersion: LatestVersion
+    - task: PublishBuildArtifacts@1
+      displayName: Publish necessary files
+
+- stage: 'DEV'    # This stage will execute the powershell script to the DEV environment
+  displayName: 'Deploy to the DEV environment'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/DEV')) # This stage only on master branch, so after PR completion
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to DEV
+    pool: kai-dev-shared-agentpool
+    environment: Development
+    timeoutInMinutes: 360
+    workspace:            
+      clean: all
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: Deployment/Pipeline/Deploy.yaml
+            parameters:
+              env: dev
+
+- stage: 'ACC'    # This stage will execute the powershell script to the ACC environment
+  displayName: 'Deploy to the ACC environment'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ACC')) # This stage only on master branch, so after PR completion
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to ACC
+    pool: kai-acc-shared-agentpool
+    environment: Acceptance
+    timeoutInMinutes: 360
+    workspace:            
+      clean: all
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: Deployment/Pipeline/Deploy.yaml
+            parameters:
+              env: acc
+
+- stage: 'PRD'    # This stage will execute the powershell script to the PRD environment
+  displayName: 'Deploy to the PRD environment'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) # This stage only on master branch, so after PR completion
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to PRD
+    pool: kai-prd-shared-agentpool
+    environment: Production
+    timeoutInMinutes: 360
+    workspace:            
+      clean: all
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: Deployment/Pipeline/Deploy.yaml
+            parameters:
+              env: prd
+...

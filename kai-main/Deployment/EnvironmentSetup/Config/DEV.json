@@ -1,0 +1,15 @@
+{
+  "environment": "dev",
+  "subscriptionId": "fce5effc-b838-4c00-9b37-38fd1465e108",
+  "location": "westeurope",
+  "tags": {
+    "EnvironmentType": "dev",
+    "BusinessUnit": "N&I Technium",
+    "ApplicationOwner": "benno.folkerts@kpn.com",
+    "CmdbApplicationID": "7957",
+    "AppTechOwner": "twan.derksen@kpn.com",
+    "ApplicationName": "Azure Integrations",
+    "OSSupport": "UM",
+    "BillingIdentifier": "19817"
+  }
+}

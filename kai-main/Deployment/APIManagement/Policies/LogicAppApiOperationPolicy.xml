@@ -1,0 +1,20 @@
+<policies>
+    <inbound>
+        <base />
+        <set-method id="apim-generated-policy">{{triggermethod}}</set-method>
+        {{path2query}}
+        <set-backend-service id="apim-generated-policy" backend-id="{{logicapp-backend-id}}" />
+        <rewrite-uri id="apim-generated-policy" template="{{template}}" />
+        <set-header id="apim-generated-policy" name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+        <set-header id="apim-generated-policy" name="Authorization" exists-action="delete" />
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

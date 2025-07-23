@@ -1,0 +1,76 @@
+{
+    "wfparameters":{
+        "TestString":{
+            "type": "string",
+            "value": "test-{{env}}-value"
+        },
+        "MailTo":{
+            "type": "object",
+            "value":{
+                "dev": "dev@test.com",
+                "acc": "acc@test.com",
+                "prd": "prd@test.com"
+            }
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Initialize_variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "test",
+                            "type": "string",
+                            "value": "{{TestString}}"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Response": {
+                "inputs": {
+                    "body": {
+                        "status": "OK"
+                    },
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "Scope": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Response"
+            },
+            "Scope": {
+                "actions": {
+                    "Set_variable": {
+                        "inputs": {
+                            "name": "test",
+                            "value": "{{MailTo}}"
+                        },
+                        "type": "SetVariable"
+                    }
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Scope"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {},
+        "triggers": {
+            "cortest-trigger3": {
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}

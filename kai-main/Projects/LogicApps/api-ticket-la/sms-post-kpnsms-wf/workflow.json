@@ -1,0 +1,171 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "GetTokenFromTokenService": {
+                "type": "Workflow",
+                "inputs": {
+                    "host": {
+                        "workflow": {
+                            "id": "json-s-get-token-wf"
+                        }
+                    },
+                    "body": {
+                        "destination": "KPN_SMS"
+                    },
+                    "retryPolicy": {
+                        "type": "none"
+                    }
+                },
+                "runAfter": {},
+                "runtimeConfiguration": {
+                    "secureData": {
+                        "properties": ["outputs"]
+                    }
+                }
+            },
+            "PrepareKpnSmsRequest": {
+                "type": "Compose",
+                "inputs": {
+                    "sender": "@{coalesce(triggerBody()?['operator'], 'KPNB2B')}",
+                    "messages": "@{array(createArray(json(concat('{\"mobile_number\": \"', join(triggerBody()['mobilephones'], ','), '\", \"content\": \"', replace(replace(triggerBody()['smsmessage'], '\"', '\\\"'), '\n', '\\n'), '\"}'))))}",
+                    "expirein": "300"
+                },
+                "runAfter": {
+                    "GetTokenFromTokenService": ["Succeeded"]
+                }
+            },
+            "SendSmsToKpnApi": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "https://api-prd.kpn.com/communication/kpn/sms/send",
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer @{body('GetTokenFromTokenService')?['token']}"
+                    },
+                    "body": "@outputs('PrepareKpnSmsRequest')",
+                    "retryPolicy": {
+                        "type": "exponential",
+                        "count": 3,
+                        "interval": "PT10S"
+                    }
+                },
+                "runAfter": {
+                    "PrepareKpnSmsRequest": ["Succeeded"]
+                },
+                "trackedProperties": {
+                    "action": "send",
+                    "destination": "SMS",
+                    "provider": "KPN",
+                    "reference_number": "@{triggerBody()['caseid']}",
+                    "source": "@{triggerBody()['source']}",
+                    "mobile_numbers": "@{join(triggerBody()['mobilephones'], ';')}",
+                    "workflow_run_id": "@{workflow()?['run']?['name']}"
+                }
+            },
+            "EvaluateResponse": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@outputs('SendSmsToKpnApi')['statusCode']",
+                                200
+                            ]
+                        },
+                        {
+                            "equals": [
+                                "@body('SendSmsToKpnApi')?['status']",
+                                "OK"
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "SuccessResponse": {
+                        "inputs": {
+                            "body": {
+                                "result": {
+                                    "code": "FunctionalEndpointSuccess",
+                                    "message": "SMS message(s) processed successfully",
+                                    "document_id": "@{body('SendSmsToKpnApi')?['document_id']}"
+                                }
+                            },
+                            "statusCode": 200
+                        },
+                        "kind": "Http",
+                        "runAfter": {},
+                        "type": "Response"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "ErrorResponse": {
+                            "inputs": {
+                                "body": {
+                                    "error": {
+                                        "code": "TechnicalEndpointFailure",
+                                        "message": "Error in processing SMS messages",
+                                        "details": "@{coalesce(body('SendSmsToKpnApi')?['message'], 'Unknown error occurred')}"
+                                    }
+                                },
+                                "statusCode": 500
+                            },
+                            "kind": "Http",
+                            "runAfter": {},
+                            "type": "Response"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "SendSmsToKpnApi": ["Succeeded", "Failed", "TimedOut"]
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "sms-post-kpnsms-wf": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "caseid": {
+                                "type": "string"
+                            },
+                            "mobilephones": {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            "operator": {
+                                "type": "string"
+                            },
+                            "smsmessage": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "source",
+                            "mobilephones",
+                            "smsmessage",
+                            "caseid"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "operationOptions": "EnableSchemaValidation",
+                "correlation": {
+                    "clientTrackingId": "@{concat(triggerBody()?['caseid'],'__',guid())}"
+                }
+            }
+        }
+    },
+    "kind": "Stateful"
+}

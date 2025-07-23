@@ -1,0 +1,40 @@
+﻿<!--
+    IMPORTANT:
+    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.
+    - Only the <forward-request> policy element can appear within the <backend> section element.
+    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.
+    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.
+    - To add a policy position the cursor at the desired insertion point and click on the round button associated with the policy.
+    - To remove a policy, delete the corresponding policy statement from the policy document.
+    - Policies are applied in the order of their appearance, from the top down.
+-->
+<policies>
+  <inbound>
+    {{ip-filter}}
+  </inbound>
+  <backend>
+    <forward-request />
+  </backend>
+  <outbound>
+    <!-- Remove unwanted headers returned by APIM -->
+    <set-header name="X-Powered-By" exists-action="delete" />
+    <set-header name="X-AspNet-Version" exists-action="delete" />
+    <set-header name="Ocp-Apim-Trace-Location" exists-action="delete" />
+    <!-- Remove headers returned from Logic App -->
+    <set-header name="x-ms-workflow-run-id" exists-action="delete" />
+    <set-header name="x-ms-correlation-id" exists-action="delete" />
+    <set-header name="x-ms-client-tracking-id" exists-action="delete" />
+    <set-header name="x-ms-trigger-history-name" exists-action="delete" />
+    <set-header name="x-ms-execution-location" exists-action="delete" />
+    <set-header name="x-ms-workflow-id" exists-action="delete" />
+    <set-header name="x-ms-workflow-version" exists-action="delete" />
+    <set-header name="x-ms-workflow-name" exists-action="delete" />
+    <set-header name="x-ms-workflow-system-id" exists-action="delete" />
+    <set-header name="x-ms-tracking-id" exists-action="delete" />
+    <set-header name="x-ms-ratelimit-burst-remaining-workflow-writes" exists-action="delete" />
+    <set-header name="x-ms-ratelimit-remaining-workflow-download-contentsize" exists-action="delete" />
+    <set-header name="x-ms-ratelimit-time-remaining-directapirequests" exists-action="delete" />
+    <set-header name="x-ms-request-id" exists-action="delete" />
+  </outbound>
+  <on-error />
+</policies>

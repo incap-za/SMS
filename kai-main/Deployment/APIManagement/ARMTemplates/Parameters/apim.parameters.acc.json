@@ -1,0 +1,62 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "value": "kai-acc-integration-apimv2"
+    },
+    "publisherEmail": {
+      "value": "servicenow-io@kpn.com"
+    },
+    "publisherName": {
+      "value": "KPN"
+    },
+    "notificationSenderEmail": {
+      "value": "apimgmt-acc-noreply@mail.windowsazure.com"
+    },
+    "nvBasicAuth_AccessControlAllowOrigin": {
+      "value": "https://b2bacc-connect.kpn.org"
+    },
+    "nvBasicAuth_ClientId": {
+      "value": "d319ae8e-b6a7-4766-a821-3fd4bb373f31"
+    },
+    "nvBasicAuth_ClientSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/resourceGroups/kai-acc-shared-security-rg/providers/Microsoft.KeyVault/vaults/kai-acc-shared-kv"
+        },
+        "secretName": "ad-callersecret"
+      }
+    },
+    "nvBasicAuth_ResourceId": {
+      "value": "a772ca70-de7f-4946-a297-e79bed332456"
+    },
+    "nvBasicAuth_FunctionAppName": {
+      "value": "kai-acc-apim-funcappv3"
+    },
+    "hostnameConfigurations": {
+      "value": [
+        {
+          "type": "Proxy",
+          "hostName": "b2bacc-connect.kpn.org",
+          "keyVaultId": "https://kai-acc-shared-kv.vault.azure.net/secrets/b2bacc-connect/",
+          "negotiateClientCertificate": true,
+          "defaultSslBinding": true
+        },
+        {
+          "type": "Portal",
+          "hostName": "b2bacc-connect-portal.kpn.org",
+          "keyVaultId": "https://kai-acc-shared-kv.vault.azure.net/secrets/b2bacc-connect-portal/",
+          "negotiateClientCertificate": false,
+          "defaultSslBinding": false
+        }
+      ]
+    },
+    "vnetName": {
+      "value": "kai-b2b-acc-001-vnet"
+    },
+    "subnetName": {
+      "value": "app-apimv2-subnet"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "value": "kai-dev-integration-apimv2"
+    },
+    "publisherEmail": {
+      "value": "servicenow-io@kpn.com"
+    },
+    "publisherName": {
+      "value": "KPN"
+    },
+    "notificationSenderEmail": {
+      "value": "apimgmt-dev-noreply@mail.windowsazure.com"
+    },
+    "nvBasicAuth_ClientId": {
+      "value": "b9947fb9-aed1-4b8f-ba1f-4490b645932d"
+    },
+    "nvBasicAuth_ClientSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/kai-dev-shared-security-rg/providers/Microsoft.KeyVault/vaults/kai-dev-shared-kv"
+        },
+        "secretName": "ad-callersecret"
+      }
+    },
+    "nvBasicAuth_ResourceId": {
+      "value": "5a7a3ca5-d546-41b0-9975-a24b0cb19e17"
+    },
+    "nvBasicAuth_FunctionAppName": {
+      "value": "kai-dev-apim-funcappv3"
+    },
+    "nvBasicAuth_AccessControlAllowOrigin": {
+      "value": "https://b2bdev-connect.kpn.org"
+    },
+    "hostnameConfigurations": {
+      "value": [
+        {
+          "type": "Proxy",
+          "hostName": "b2bdev-connect.kpn.org",
+          "keyVaultId": "https://kai-dev-shared-kv.vault.azure.net/secrets/b2bdev-connect/",
+          "negotiateClientCertificate": true,
+          "defaultSslBinding": true
+        },
+        {
+          "type": "Portal",
+          "hostName": "b2bdev-connect-portal.kpn.org",
+          "keyVaultId": "https://kai-dev-shared-kv.vault.azure.net/secrets/b2bdev-connect-portal/",
+          "negotiateClientCertificate": false,
+          "defaultSslBinding": false
+        }
+      ]
+    },
+    "vnetName": {
+      "value": "kia-b2b-dev-001-vnet"
+    },
+    "subnetName": {
+      "value": "app-apimv2-subnet"
+    }
+  }
+}

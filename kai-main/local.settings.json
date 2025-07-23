@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "APP_KIND": "workflowapp",
+    "ProjectDirectoryPath": "c:\\src\\repositories\\kai-main",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "WORKFLOWS_TENANT_ID": "d7790549-8c35-40ea-ad75-954ac3e86be8",
+    "WORKFLOWS_SUBSCRIPTION_ID": "fce5effc-b838-4c00-9b37-38fd1465e108",
+    "WORKFLOWS_RESOURCE_GROUP_NAME": "kai-dev-ticket-rg",
+    "WORKFLOWS_LOCATION_NAME": "westeurope",
+    "WORKFLOWS_MANAGEMENT_BASE_URI": "https://management.azure.com/"
+  }
+}

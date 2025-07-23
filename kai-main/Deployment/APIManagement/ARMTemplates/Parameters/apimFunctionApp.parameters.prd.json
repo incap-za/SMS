@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountsName": {
+      "value": "kaiprdsharedapimst"
+    },
+    "functionAppName": {
+      "value": "kai-prd-apim-funcappv3"
+    },
+    "appSettings": {
+      "value": {
+        "DatabaseConnectionString": "Server=tcp:kaiprdsql01.database.windows.net,1433;Initial Catalog=kai-prd-sql-db;Persist Security Info=False;User ID=gen-la-usr-prd;Password={0};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+        "DatabasePasswordSecret": "db-kaisqldb-genlausrprd",
+        "DatabaseVault": "kai-prd-shared-kv"
+      }
+    },
+    "siteAuthclientId": {
+      "value": "40acfaab-08f6-481a-b993-f9084dcbfc34"
+    }
+  }
+}

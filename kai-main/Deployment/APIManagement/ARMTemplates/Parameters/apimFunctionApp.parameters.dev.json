@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountsName": {
+      "value": "kaidevsharedapimst"
+    },
+    "functionAppName": {
+      "value": "kai-dev-apim-funcappv3"
+    },
+    "appSettings": {
+      "value": {
+        "DatabaseConnectionString": "Server=tcp:kaidevsql01.database.windows.net,1433;Initial Catalog=kai-dev-sql-db;Persist Security Info=False;User ID=gen-la-usr-dev;Password={0};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+        "DatabasePasswordSecret": "db-kaisqldb-genlausrdev",
+        "DatabaseVault": "kai-dev-shared-kv"
+      }
+    },
+    "siteAuthclientId": {
+      "value": "5a7a3ca5-d546-41b0-9975-a24b0cb19e17"
+    }
+  }
+}

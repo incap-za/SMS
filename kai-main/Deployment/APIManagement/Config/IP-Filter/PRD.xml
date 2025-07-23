@@ -1,0 +1,6 @@
+﻿<!-- 10.28.142.176 - 10.28.142.191:     KPN Azure App Gateway (b2bacc-connect.kpn.org) -->
+<!-- 127.0.0.1:                         KPN Azure APIM local IP (used by Developer Portal to reference itself) -->
+<ip-filter action="allow">
+	<address-range from="10.28.142.176" to="10.28.142.191" />
+  <address>127.0.0.1</address>
+</ip-filter>

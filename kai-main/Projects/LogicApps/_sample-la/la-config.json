@@ -1,0 +1,8 @@
+{
+  "resourceGroupName":"<env>-ticket-rg",
+  "storageName":"<env>samplelast",
+  "appInsights":"<env>-ticket-appinsights",
+  "appServicePlanName":"<env>-ticket-sp",
+  "appServicePlanResourceGroupName":"<env>-ticket-rg",
+  "appServiceEnvironment":"kai-<env>-shared-ase"
+}

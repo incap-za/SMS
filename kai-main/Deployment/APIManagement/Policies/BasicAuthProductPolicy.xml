@@ -1,0 +1,406 @@
+﻿<!--
+    IMPORTANT:
+    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.
+    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.
+    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.
+    - To add a policy, place the cursor at the desired insertion point and select a policy from the sidebar.
+    - To remove a policy, delete the corresponding policy statement from the policy document.
+    - Position the <base> element within a section element to inherit all policies from the corresponding section element in the enclosing scope.
+    - Remove the <base> element to prevent inheriting policies from the corresponding section element in the enclosing scope.
+    - Policies are applied in the order of their appearance, from the top down.
+    - Comments within policy elements are not supported and may disappear. Place your comments between policy elements or at a higher level scope.
+-->
+<policies>
+    <inbound>
+      <set-variable name="contentTypeHeader" value="@{
+            string[] value;
+            if (context.Request.Headers.TryGetValue("content-type", out value))
+            {
+                if (value != null && value.Length > 0)
+                {
+                    return value[0].Replace("\"","");
+                }
+            }
+            return String.Empty;
+
+      }" />
+      <set-header name="Content-Type" exists-action="override">
+        <value>"@((string)context.Variables["contentTypeHeader"])"</value>
+      </set-header>
+      <set-variable name="contentType" value="@{
+            if(context.Api.Name.Contains("SOAP")){
+                return "text/xml";
+            }
+
+            return "application/json";
+        }"/>
+        <set-variable name="jsonErrorFormat" value="@{
+            return "{{\"error\": {{\"code\": \"{0}\", \"message\": \"{1}\"}}}}";
+        }"/>
+        <set-variable name="xmlErrorFormat" value="@{
+            return "<s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'><s:Body><s:Fault><faultcode>s:Client</faultcode><faultstring xml:lang='en-IN'>{0}</faultstring></s:Fault></s:Body></s:Envelope>";
+        }"/>
+        <!-- Validate Authorization header -->
+        <set-variable name="basicAuth" value="@{
+            // validate Authorization header
+            string basicAuth;
+            basicAuth = context.Request.Headers.GetValueOrDefault("Authorization", "").Split(' ')?.Last() ?? "";
+            
+            // validate basicAuth base64 string
+            if(!string.IsNullOrEmpty(basicAuth))
+            {
+                try
+                {
+                    string userId = context.Request.Headers.GetValueOrDefault("Authorization").AsBasic().UserId;
+                    string password = context.Request.Headers.GetValueOrDefault("Authorization").AsBasic().Password;
+                }
+                catch
+                {
+                    // set basicAuth as empty string when no valid userId and password info retrieved from base64 encoded string
+                    basicAuth = string.Empty; 
+                }
+            }
+
+            return basicAuth;
+        }" />
+        <choose>
+            <when condition="@(string.IsNullOrEmpty((string)context.Variables["basicAuth"]))">
+                <return-response response-variable-name="Forbidden">
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Basic realm="KPN B2B System"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    {{response-headers}}
+                    <set-body>@{
+                          string code = "AuthenticationFailure";
+                          string message = "Authorization header has no valid token provided";
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                      }</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- get client secret and convert to url encoded string -->
+        <set-variable name="clientSecret" value="@{
+            string password = "{{BasicAuth_ClientSecret}}";
+
+            // create dictonary with special chars which need to be URL encoded
+            Dictionary<char, string> keyValuePairs = new Dictionary<char, string>();
+            keyValuePairs.Add(' ', "+");
+            keyValuePairs.Add('#', "%23");
+            keyValuePairs.Add('$', "%24");
+            keyValuePairs.Add('%', "%25");
+            keyValuePairs.Add('&', "%26");
+            keyValuePairs.Add('\'', "%27");
+
+            keyValuePairs.Add('+', "%2B");
+            keyValuePairs.Add(',', "%2c");
+            keyValuePairs.Add('/', "%2f");
+            keyValuePairs.Add(':', "%3a");
+            keyValuePairs.Add(';', "%3b");
+            keyValuePairs.Add('<', "%3c");
+            keyValuePairs.Add('=', "%3D");
+            keyValuePairs.Add('>', "%3e");
+            keyValuePairs.Add('?', "%3f");
+            keyValuePairs.Add('@', "%40");
+            keyValuePairs.Add('[', "%5b");
+            keyValuePairs.Add('\\', "%5c");
+            keyValuePairs.Add(']', "%5d");
+            keyValuePairs.Add('^', "%5e");
+            keyValuePairs.Add('`', "%60");
+            keyValuePairs.Add('{', "%7b");
+            keyValuePairs.Add('|', "%7c");
+            keyValuePairs.Add('}', "%7d");
+            keyValuePairs.Add('~', "%7e");
+
+            string encodedPassword = "";
+            foreach(char c in password)
+            {
+              if(keyValuePairs.ContainsKey(c))
+              {
+                // replace special chars with URL encoding
+                encodedPassword += keyValuePairs[c];
+              }
+              else
+              {
+                encodedPassword += c;
+              }
+            }
+            
+            return encodedPassword;
+          }" 
+        />
+        <!-- request bearer token from AAD authorization server -->
+        <!-- 2021-11-24: retry once after 3 seconds only if StatusCode not 200/401/403-->
+        <retry
+            condition="@(context.Response.StatusCode != 200 && context.Response.StatusCode != 401 && context.Response.StatusCode != 403)"
+            count="1"
+            interval="3">
+            <send-request ignore-error="false" timeout="20" response-variable-name="bearerToken" mode="new">
+                <set-url>{{BasicAuth_AuthorizationServer}}</set-url>
+                <set-method>POST</set-method>
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/x-www-form-urlencoded</value>
+                </set-header>
+                <set-body>@($"grant_type=client_credentials&client_id={{BasicAuth_ClientId}}&client_secret={context.Variables["clientSecret"]}&resource={{BasicAuth_ResourceId}}")</set-body>
+            </send-request>
+        </retry>
+        <!-- 2021-11-24: validate if AAD authorization request was valid -->
+        <!-- read response statusCode. If statusCode not valid throw default 401 error -->
+        <set-variable name="bearerTokenReqStatus" value="@((string)((IResponse)context.Variables["bearerToken"]).StatusCode.ToString())" />
+        <choose>
+            <when condition="@((string)context.Variables["bearerTokenReqStatus"] != "200" && (string)context.Variables["bearerTokenReqStatus"] != "401" &&(string)context.Variables["bearerTokenReqStatus"] != "403" )">
+                <return-response response-variable-name="Unauthorized">
+                    <set-status code="401" reason="Unauthorized" /> 
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Basic realm="KPN B2B System"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    <set-body>@{
+                          string code = "AuthenticationFailure";
+                          string message = "Provided username and password could not be validated against the KPN Active Directory (from policy)";
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                    }</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- validate token -->
+        <!-- read response token -->
+        <set-variable name="bearerTokenReq" value="@((String)((IResponse)context.Variables["bearerToken"]).Body.As<JObject>()["access_token"])" />
+        <choose>
+            <when condition="@(string.IsNullOrEmpty((string)context.Variables["bearerTokenReq"]))">
+                <return-response response-variable-name="Unauthorized">
+                    <set-status code="401" reason="Unauthorized" /> 
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Basic realm="KPN B2B System"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    <set-body>@{
+                          string code = "AuthenticationFailure";
+                          string message = "Provided username and password combination is not valid in KPN Active Directory (from policy)";
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                    }</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- retrieve client authorization for requested api -->
+        <!-- 2021-11-24: retry once after 3 seconds -->
+        <retry
+            condition="@(context.Response.StatusCode != 200 && context.Response.StatusCode != 401 && context.Response.StatusCode != 422 && context.Response.StatusCode != 500)"
+            count="1"
+            interval="3">
+            <send-request ignore-error="false" timeout="20" response-variable-name="functionAppReq" mode="new">
+            <set-url>{{BasicAuth_FunctionAppUrl}}</set-url>
+            <set-method>POST</set-method>
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["bearerTokenReq"])</value>
+            </set-header>
+            <set-header name="RequestAuthorization" exists-action="override">
+                <value>@(context.Request.Headers.GetValueOrDefault("Authorization", ""))</value>
+            </set-header>
+            <set-header name="RequestApi" exists-action="override">
+                <value>@(context.Api.Name)</value>
+            </set-header>
+            <set-header name="RequestUri" exists-action="override">
+                <value>@((string)context.Api.ServiceUrl.ToString())</value>
+            </set-header>
+            </send-request>
+        </retry>
+        <!-- read response status code -->
+        <set-variable name="functionAppReqStatus" value="@((string)((IResponse)context.Variables["functionAppReq"]).StatusCode.ToString())" />
+        <choose>
+            <!-- Unauthorized -->
+            <when condition="@((string)context.Variables["functionAppReqStatus"] == "401")">
+                <return-response response-variable-name="Unauthorized">
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Basic realm="KPN B2B System"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    {{response-headers}}
+                    <set-body>@{
+                          string code = "AuthenticationFailure";
+                          string message = "Function access failure";
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                      }</set-body>
+                </return-response>
+            </when>
+            <when condition="@((string)context.Variables["functionAppReqStatus"] == "422")">
+                <return-response>
+                    <set-status code="403" reason="Forbidden" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Basic realm="KPN B2B System"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    {{response-headers}}
+                    <set-body>@{
+                          string code = "AuthorizationFailure";
+                          string message = (string)((IResponse)context.Variables["functionAppReq"]).Body.As<JObject>()["error"]["message"];
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@((string)context.Variables["functionAppReqStatus"] == "500")">
+                <return-response>
+                    <set-status code="500" reason="Server Error" />
+                    <set-header name="Content-Type" exists-action="override">
+                      <value>@((string)context.Variables["contentType"])</value>
+                    </set-header>
+                    {{response-headers}}
+                    <set-body>@{
+                          string code = "ServerError";
+                          string message = "Internal server error occurred while processing your request.";
+                          string formattedBody = string.Empty;
+                          if((string)context.Variables["contentType"] == "application/json"){
+                              formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+                          }
+                          else{
+                              formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+                          }
+                          return formattedBody;
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@((string)context.Variables["functionAppReqStatus"] == "200")">
+                <set-variable name="username" value="@((string)((IResponse)context.Variables["functionAppReq"]).Body.As<JObject>()["userName"].ToString())" />
+            </when>
+            <!-- 2021-11-24 changed when condition to otherwise to cath all other cases -->
+            <otherwise>
+              <return-response response-variable-name="functionAppReq">
+                {{response-headers}}
+              </return-response>
+            </otherwise>
+        </choose>
+        <!-- Remove Authorization header to authenticate Logic App -->
+        <set-header name="Authorization" exists-action="delete" />
+        <set-header name="username" exists-action="override">
+            <value>@((string)context.Variables["username"])</value>
+        </set-header>
+        <set-header name="api" exists-action="override">
+            <value>@((string)context.Api.Name)</value>
+        </set-header>
+        <set-header name="Content-Type" exists-action="override">
+          <value>@((string)context.Variables["contentTypeHeader"])</value>
+        </set-header>
+        <set-header name="apiOperationMethod" exists-action="override">
+            <value>@((string)context.Operation.Method)</value>
+        </set-header>
+        <set-header name="apiOperationName" exists-action="override">
+            <value>@((string)context.Operation.Name)</value>
+        </set-header>
+        <base />
+    </inbound>
+    <backend>
+        <!-- 2021-11-24: retry once after 3 seconds, this will cause the logic app to be triggered twice if an unknown statusCode is returned -->
+        <retry
+            condition="@(context.Response.StatusCode != 200 && context.Response.StatusCode != 201 && context.Response.StatusCode != 202 && context.Response.StatusCode != 400 && context.Response.StatusCode != 401 && context.Response.StatusCode != 403 && context.Response.StatusCode != 418 && context.Response.StatusCode != 500 && context.Response.StatusCode != 502)"
+            count="1"
+            interval="3">
+            <forward-request />
+        </retry>
+    </backend>
+    <outbound>
+      {{response-headers}}
+      <base />
+    </outbound>
+    <on-error>
+        <base />
+              <set-variable name="contentType" value="@{
+            if(context.Api.Name.Contains("SOAP")){
+                return "text/xml";
+            }
+            return "application/json";
+            }" />
+        <set-variable name="jsonErrorFormat" value="@{
+            return "{{\"error\": {{\"code\": \"{0}\", \"message\": \"{1}\"}}}}";
+            }" />
+        <set-variable name="xmlErrorFormat" value="@{
+            return "<s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'><s:Body><s:Fault><faultcode>s:Client</faultcode><faultstring xml:lang='en-IN'>{0}</faultstring></s:Fault></s:Body></s:Envelope>";
+            }" />
+        <return-response>
+          <set-status code="@(context.Response.StatusCode)" reason="@(context.LastError.Reason)" />
+          <set-header name="ErrorSource" exists-action="override">
+              <value>@(context.LastError.Source)</value>
+          </set-header>
+          <set-header name="ErrorScope" exists-action="override">
+              <value>@(context.LastError.Scope)</value>
+          </set-header>
+          <set-header name="ErrorSection" exists-action="override">
+              <value>@(context.LastError.Section)</value>
+          </set-header>
+          <!-- 2021-11-24 added LastError.Message in header -->
+          <set-header name="ErrorMessage" exists-action="override">
+              <value>@(context.LastError.Message)</value>
+          </set-header>
+          <set-header name="ErrorPath" exists-action="override">
+              <value>@(context.LastError.Path)</value>
+          </set-header>
+          <set-header name="Content-Type" exists-action="override">
+              <value>@((string)context.Variables["contentType"])</value>
+          </set-header>
+          {{response-headers}}
+          <set-body>@{
+              // send response with last error message
+              string code = "APIManagementError";
+              // 2021-11-24 default message, no internal technical details to customer 
+              string message = "Unspecified error";
+              string formattedBody = string.Empty;
+              if((string)context.Variables["contentType"] == "application/json"){
+                  formattedBody = string.Format((string)context.Variables["jsonErrorFormat"], code, message);
+              }
+              else{
+                  formattedBody = string.Format((string)context.Variables["xmlErrorFormat"], message);
+              }
+              return formattedBody;
+          }</set-body>
+        </return-response>
+    </on-error>
+</policies>

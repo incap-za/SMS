@@ -1,0 +1,43 @@
+﻿<!-- Introduce headers as result of Pen-test recommendations -->
+<!-- Removal commented; in fact header is needed to prevent downgrade attacks - enforcing HTTPS-->
+<!--set-header name="Strict-Transport-Security" exists-action="delete" /-->
+<!-- Setting preventing Downgrade attacks-->
+<set-header name="Strict-Transport-Security" exists-action="override">
+  <value>max-age=31536000; includeSubDomains</value>
+</set-header>
+<!-- Setting preventing Clickjacking attacks-->
+<set-header name="X-Frame-Options" exists-action="override">
+  <value>Deny</value>
+</set-header>
+<!-- Setting preventing CSP misuse; extended by proposed of OSO - Munzur - 8-3-2019-->
+<set-header name="Content-Security-Policy" exists-action="override">
+  <value>frame-ancestors 'none'; default-src 'none'; script-src 'self'</value>
+</set-header>
+<!-- Adjusting Pragma-value (not sure if needed?)-->
+<set-header name="Pragma" exists-action="override">
+  <value>no-cache</value>
+</set-header>
+<!-- Adjusting Cache-control-value (not sure if needed?)-->
+<set-header name="Cache-control" exists-action="override">
+  <value>no-cache</value>
+</set-header>
+<!-- Adjusting Referrer-Policy value (Disable referrers for browsers that don't support strict-origin-when-cross-origin; Uses strict-origin-when-cross-origin for browsers that do)-->
+<set-header name="Referrer-Policy" exists-action="override">
+  <value>no-referrer, strict-origin-when-cross-origin</value>
+</set-header>
+<!-- Prevent CORS with whitelist origin domain-->
+<set-header name="Access-Control-Allow-Origin" exists-action="override">
+  <value>{{BasicAuth_AccessControlAllowOrigin}}</value>
+</set-header>
+<!-- Setting XSS protection; no confirmed benefit for API, yet proposed by OSO - Munzur - 8-3-2019-->
+<set-header exists-action="override" name="X-XSS-Protection">
+  <value>1; mode=block</value>
+</set-header>
+<!-- Prevents content type from being exposed (needs to be set); no confirmed benefit for API, yet proposed by OSO - Munzur - 8-3-2019-->
+<set-header exists-action="override" name="X-Content-Type-Options">
+  <value>nosniff</value>
+</set-header>
+<!-- Additional proposed by OSO - Munzur - 8-3-2019-->
+<set-header exists-action="override" name="X-Permitted-Cross-Domain-Policies">
+  <value>none</value>
+</set-header>

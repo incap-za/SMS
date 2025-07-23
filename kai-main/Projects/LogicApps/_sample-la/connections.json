@@ -1,0 +1,41 @@
+{
+    "managedApiConnections": {},
+    "serviceProviderConnections": {
+        "smtp": {
+            "displayName": "smtp",
+            "parameterValues": {
+                "enableSSL": "false",
+                "password": "Anything",
+                "port": "@appsetting('app-smtp-port')",
+                "serverAddress": "@appsetting('app-smtp-serverAddress')",
+                "username": "Anything"
+            },
+            "serviceProvider": {
+                "id": "/serviceProviders/Smtp"
+            }
+        },
+        "keyVault": {
+            "displayName": "keyvault",
+            "parameterSetName": "ManagedServiceIdentity",
+            "parameterValues": {
+                "VaultUri": "@appsetting('app-keyvault-uri')",
+                "authProvider": {
+                    "Type": "ManagedServiceIdentity"
+                }
+            },
+            "serviceProvider": {
+                "id": "/serviceProviders/keyVault"
+            }
+        },
+        "sql-kpnb2b": {
+            "displayName": "sql-kpnb2b",
+            "parameterSetName": "connectionString",
+            "parameterValues": {
+                "connectionString": "@appsetting('app-sql-kpnb2b-conn')"
+            },
+            "serviceProvider": {
+                "id": "/serviceProviders/sql"
+            }
+        }
+    }
+}

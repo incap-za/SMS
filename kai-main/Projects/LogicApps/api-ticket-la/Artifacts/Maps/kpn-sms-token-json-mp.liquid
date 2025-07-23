@@ -1,0 +1,24 @@
+{% comment %} 
+################################################################################################# 
+# KPN SMS API Token Request Template
+# This template formats the OAuth token request for KPN SMS API
+#################################################################################################
+{% endcomment %}
+{% assign inputBaseUrl = content.baseUrl %}
+{% assign inputClientId = content.clientId %}
+{% assign inputClientSecret = content.clientSecret %}
+
+{% comment %} 
+################################################################################################# 
+# Build OAuth Token Request
+#################################################################################################
+{% endcomment %}
+{
+    "fullUrl": "{{ inputBaseUrl }}",
+    "httpMethod": "POST",
+    "headers": {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "requestBody": "grant_type=client_credentials&client_id={{ inputClientId }}&client_secret={{ inputClientSecret }}",
+    "outputAction": "token_request"
+}

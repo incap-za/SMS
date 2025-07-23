@@ -1,0 +1,8 @@
+﻿{
+  "environment": "dev",
+  "environmentLogicApp": "dev",
+  "subscriptionId": "fce5effc-b838-4c00-9b37-38fd1465e108",
+  "apimResourceGroupName": "kai-dev-shared-apim-rg",
+  "apimId": "kai-dev-integration-apimv2",
+  "serviceUrl": "https://b2bdev-connect.kpn.org"
+}

@@ -1,0 +1,58 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "value": "kai-prd-integration-apimv2"
+    },
+    "publisherEmail": {
+      "value": "servicenow-io@kpn.com"
+    },
+    "publisherName": {
+      "value": "KPN"
+    },
+    "notificationSenderEmail": {
+      "value": "apimgmt-prd-noreply@mail.windowsazure.com"
+    },
+    "nvBasicAuth_AccessControlAllowOrigin": {
+      "value": "https://b2b-connect.kpn.org"
+    },
+    "nvBasicAuth_ClientId": {
+      "value": "f563fd7a-bab6-4569-b684-b2ff20251e0c"
+    },
+    "nvBasicAuth_ClientSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/99eb19fb-0990-4ba8-b21d-cdb595f20b84/resourceGroups/kai-prd-shared-security-rg/providers/Microsoft.KeyVault/vaults/kai-prd-shared-kv"
+        },
+        "secretName": "ad-callersecret"
+      }
+    },
+    "nvBasicAuth_ResourceId": {
+      "value": "40acfaab-08f6-481a-b993-f9084dcbfc34"
+    },
+    "nvBasicAuth_FunctionAppName": {
+      "value": "kai-prd-apim-funcappv3"
+    },
+    "hostnameConfigurations": {
+      "value": [
+        {
+          "type": "Proxy",
+          "hostName": "b2b-connect.kpn.org",
+          "keyVaultId": "https://kai-prd-shared-kv.vault.azure.net/secrets/b2b-connect/",
+          "negotiateClientCertificate": true,
+          "defaultSslBinding": true
+        }
+      ]
+    },
+    "vnetName": {
+      "value": "kai-b2b-prd-001-vnet"
+    },
+    "subnetName": {
+      "value": "app-apimv2-subnet"
+    },
+    "sku": {
+      "value": "Premium"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# This template will deploy to a certain environment, the environment is an input parameter
+parameters:
+- name: env
+  default: ''
+
+steps:
+- download: current
+  displayName: Download necessary files
+  artifact: drop
+# Run deployment script as placed in fixed folder from Build 'Get changed files'
+- task: AzureCLI@2
+  displayName: 'Run deployment script'
+  inputs:
+    azureSubscription: 'azure-${{ parameters.env }}-connection'
+    scriptType:  'ps'  
+    scriptLocation: 'scriptPath' 
+    ScriptPath: '$(Pipeline.Workspace)/drop/DeploymentScripts/pipeline/sub/deploy.ps1'
+    ScriptArguments: '-Environment ${{ parameters.env }} -BranchName $(Build.SourceBranch)'
+    addSpnToEnvironment: true
+    azurePowerShellVersion: LatestVersion    

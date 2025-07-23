@@ -1,0 +1,24 @@
+{
+    "callerSecret": {
+        "type": "String",
+        "value": "@appsetting('app-callersecret')"
+    },
+    "subscriptionId": {
+        "type": "String",
+        "value": "{{subscriptionId}}"
+    },
+    "oAuth": {
+        "type": "Object",
+        "value": {
+            "clientId": "{{oAuth.clientId}}"
+        }
+    },
+    "mailFrom":{
+        "type": "String",
+        "value": "{{smtp.mailFrom}}"
+    },
+    "mailOb":{
+        "type": "String",
+        "value": "{{smtp.mailOb}}"
+    }
+}

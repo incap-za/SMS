@@ -1,0 +1,26 @@
+"managedApiConnections": {
+    "azuredatafactory": {
+        "api": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/providers/Microsoft.Web/locations/westeurope/managedApis/azuredatafactory"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/resourceGroups/acc-datahub-rg/providers/Microsoft.Web/connections/azuredatafactory"
+        },
+        "connectionRuntimeUrl": "https://1be1f751c463f3eb.02.common.logic-westeurope.azure-apihub.net/apim/azuredatafactory/c0ad2fd487c04aae8e1138b0cf733f0a"
+    },
+    "sharepointonline": {
+        "api": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/resourceGroups/acc-datahub-rg/providers/Microsoft.Web/connections/sharepointonline"
+        },
+        "connectionRuntimeUrl": "https://1be1f751c463f3eb.02.common.logic-westeurope.azure-apihub.net/apim/sharepointonline/b940dcdbbfe948b9abde972278d08b4d"
+    }
+},

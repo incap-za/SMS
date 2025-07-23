@@ -1,0 +1,14 @@
+"managedApiConnections": {
+    "sharepointonline": {
+        "api": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/0315ea1e-1c55-4073-88de-ca53893a048f/resourceGroups/acc-cmdb-rg/providers/Microsoft.Web/connections/sharepointonline"
+        },
+        "connectionRuntimeUrl": "https://1be1f751c463f3eb.02.common.logic-westeurope.azure-apihub.net/apim/sharepointonline/d722d7fd70aa403a9ed93474452a2062"
+    }
+},

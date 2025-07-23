@@ -1,0 +1,25 @@
+{
+  "environment": "dev",
+  "subscriptionId": "fce5effc-b838-4c00-9b37-38fd1465e108",
+  "sqlConnection": {
+    "name": "sql",
+    "server": "kaidevsql01.database.secure.windows.net",
+    "database": "kai-dev-sql-db",
+    "userName": "gen-devops-usr-dev",
+    "password": "db-kaisqldb-devops"
+  },
+  "datahubGreen": {
+    "name": "sql",
+    "server": "sndmuatsql01.database.windows.net",
+    "database": "dev-sndatahub-db",
+    "userName": "gen-devops-usr-dev",
+    "password": "db-kaisqldb-devops"
+  },
+  "dataHubRed": {
+    "name": "sql",
+    "server": "sndhrednonprdsql01.database.windows.net",
+    "database": "reddev-sndatahub-db",
+    "userName": "gen-devops-usr-dev",
+    "password": "db-kaisqldb-devops"
+  }
+}

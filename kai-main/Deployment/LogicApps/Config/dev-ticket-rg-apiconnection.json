@@ -1,0 +1,50 @@
+"managedApiConnections": {
+    "office365": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/office365"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-ticket-rg/providers/Microsoft.Web/connections/office365"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/office365/d65874cf0904422d8c062c1302cde41c"
+    },
+    "sharepointonline": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-ticket-rg/providers/Microsoft.Web/connections/sharepointonline"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/sharepointonline/38139a22840c478499e984be67ff5627"
+    },   
+    "smtp": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/smtp"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-ticket-rg/providers/Microsoft.Web/connections/smtp-1"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/smtp/db8e5d240e18416fbf9d6166d043932a"
+    },
+    "webcontents": {
+        "api": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/providers/Microsoft.Web/locations/westeurope/managedApis/webcontents"
+        },
+        "authentication": {
+            "type": "ManagedServiceIdentity"
+        },
+        "connection": {
+            "id": "/subscriptions/fce5effc-b838-4c00-9b37-38fd1465e108/resourceGroups/dev-ticket-rg/providers/Microsoft.Web/connections/webcontents"
+        },
+        "connectionRuntimeUrl": "https://63d5851242343058.12.common.logic-westeurope.azure-apihub.net/apim/webcontents/23722632692f46da8393717eac15cfa6"
+    }
+},

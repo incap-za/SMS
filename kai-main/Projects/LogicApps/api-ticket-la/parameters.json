@@ -1,0 +1,29 @@
+{
+    "subscriptionId": {
+        "type": "String",
+        "value": "{{subscriptionId}}"
+    },
+    "oAuth": {
+        "type": "Object",
+        "value": {
+            "clientId": "{{oAuth.clientId}}",
+            "audience": "{{oAuth.audience}}"
+        }
+    },
+    "serviceNowGreen": {
+        "type": "Object",
+        "value": {
+            "baseUrl": "{{serviceNowGreen.baseUrl}}",
+            "userName": "{{serviceNowGreen.userName}}",
+            "secret":"@appsetting('app-kpnsngr-secret')"
+        }
+    },
+    "serviceNowGreenTask": {
+        "type": "Object",
+        "value": {
+            "baseUrl": "{{serviceNowGreenTask.baseUrl}}",
+            "userName": "{{serviceNowGreenTask.userName}}",
+            "secret": "@appsetting('app-kpnsngr-task-secret')"
+        }
+    }
+}
