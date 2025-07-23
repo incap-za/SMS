@@ -2,14 +2,19 @@
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
-            "GetTokenFromKeyVault": {
-                "type": "Http",
+            "GetTokenFromTokenService": {
+                "type": "Workflow",
                 "inputs": {
-                    "method": "GET",
-                    "uri": "@{appsetting('KeyVaultUrl')}/secrets/ws-sms-kpn-token?api-version=7.0",
-                    "authentication": {
-                        "type": "ManagedServiceIdentity",
-                        "audience": "https://vault.azure.net"
+                    "host": {
+                        "workflow": {
+                            "id": "json-s-get-token-wf"
+                        }
+                    },
+                    "body": {
+                        "destination": "KPN_SMS"
+                    },
+                    "retryPolicy": {
+                        "type": "none"
                     }
                 },
                 "runAfter": {},
@@ -19,108 +24,15 @@
                     }
                 }
             },
-            "ParseTokenResponse": {
-                "type": "ParseJson",
-                "inputs": {
-                    "content": "@body('GetTokenFromKeyVault')?['value']",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "access_token": {
-                                "type": "string"
-                            },
-                            "expires_at": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "runAfter": {
-                    "GetTokenFromKeyVault": ["Succeeded"]
-                }
-            },
-            "CheckTokenExpiry": {
-                "type": "If",
-                "expression": {
-                    "or": [
-                        {
-                            "equals": [
-                                "@body('ParseTokenResponse')?['access_token']",
-                                ""
-                            ]
-                        },
-                        {
-                            "less": [
-                                "@ticks(body('ParseTokenResponse')?['expires_at'])",
-                                "@ticks(utcNow())"
-                            ]
-                        }
-                    ]
-                },
-                "actions": {
-                    "GetNewToken": {
-                        "type": "Http",
-                        "inputs": {
-                            "method": "POST",
-                            "uri": "https://api-prd.kpn.com/oauth/client_credential/accesstoken?grant_type=client_credentials",
-                            "headers": {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            "authentication": {
-                                "type": "Basic",
-                                "username": "@{appsetting('KpnSmsClientId')}",
-                                "password": "@{appsetting('KpnSmsClientSecret')}"
-                            }
-                        },
-                        "runAfter": {}
-                    },
-                    "UpdateTokenInKeyVault": {
-                        "type": "Http",
-                        "inputs": {
-                            "method": "PUT",
-                            "uri": "@{appsetting('KeyVaultUrl')}/secrets/ws-sms-kpn-token?api-version=7.0",
-                            "body": {
-                                "value": "@{json(concat('{\"access_token\":\"', body('GetNewToken')?['access_token'], '\",\"expires_at\":\"', addMinutes(utcNow(), 55), '\"}'))}"
-                            },
-                            "authentication": {
-                                "type": "ManagedServiceIdentity",
-                                "audience": "https://vault.azure.net"
-                            }
-                        },
-                        "runAfter": {
-                            "GetNewToken": ["Succeeded"]
-                        }
-                    },
-                    "SetAccessToken": {
-                        "type": "Compose",
-                        "inputs": "@body('GetNewToken')?['access_token']",
-                        "runAfter": {
-                            "UpdateTokenInKeyVault": ["Succeeded"]
-                        }
-                    }
-                },
-                "else": {
-                    "actions": {
-                        "UseExistingToken": {
-                            "type": "Compose",
-                            "inputs": "@body('ParseTokenResponse')?['access_token']",
-                            "runAfter": {}
-                        }
-                    }
-                },
-                "runAfter": {
-                    "ParseTokenResponse": ["Succeeded"]
-                }
-            },
             "PrepareKpnSmsRequest": {
                 "type": "Compose",
                 "inputs": {
                     "sender": "@{coalesce(triggerBody()?['operator'], 'KPNB2B')}",
                     "messages": "@{array(createArray(json(concat('{\"mobile_number\": \"', join(triggerBody()['mobilephones'], ','), '\", \"content\": \"', replace(replace(triggerBody()['smsmessage'], '\"', '\\\"'), '\n', '\\n'), '\"}'))))}",
-                    "webhook_url": "@{if(not(empty(appsetting('SmsWebhookUrl'))), appsetting('SmsWebhookUrl'), null)}"
+                    "expirein": "300"
                 },
                 "runAfter": {
-                    "CheckTokenExpiry": ["Succeeded"]
+                    "GetTokenFromTokenService": ["Succeeded"]
                 }
             },
             "SendSmsToKpnApi": {
@@ -130,7 +42,7 @@
                     "uri": "https://api-prd.kpn.com/communication/kpn/sms/send",
                     "headers": {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer @{if(equals(outputs('CheckTokenExpiry'), true), outputs('SetAccessToken'), outputs('UseExistingToken'))}"
+                        "Authorization": "Bearer @{body('GetTokenFromTokenService')?['token']}"
                     },
                     "body": "@outputs('PrepareKpnSmsRequest')",
                     "retryPolicy": {
