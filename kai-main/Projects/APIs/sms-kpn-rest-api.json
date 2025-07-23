@@ -1,0 +1,151 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SMS KPN Rest API",
+    "version": "1.0",
+    "description": "This is swagger documentation about KPN SMS Rest API. With this API source system will be able to send sms messages. The document describes the format of inbound request messages, success/failure response messages. Sample messages are also provided."
+  },
+  "host": "kpn.com",
+  "basePath": "/sms-kpn-rest",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/send": {
+      "post": {
+        "operationId": "post-send",
+        "summary": "Send SMS",
+        "description": "Send SMS",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SendSMS"
+            },
+            "description": "Send an SMS message"
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Succesful send SMS message",
+            "schema": {
+              "$ref": "#/definitions/Post200ApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Trigger Input schema mismatch",
+            "schema": {
+              "$ref": "#/definitions/Post400ApplicationResponse"
+            }
+          },
+          "500": {
+            "description": "Description of the error",
+            "schema": {
+              "$ref": "#/definitions/POST500ApplicationResponse"
+            }
+          }
+        },
+        "produces": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "SendSMS": {
+      "type": "object",
+      "required": [ "source", "mobilephones", "smsmessage", "caseid" ],
+      "properties": {
+        "caseid": {
+          "type": "string",
+          "description": "A reference why the SMS is send from the source system, for example ticket number",
+          "example": "INC1234"
+        },
+        "mobilephones": {
+          "items": {
+            "type": "string",
+            "description": "The mobile number where to send the SMS to",
+            "example": "+31612345678"
+          },
+          "type": "array"
+        },
+        "operator": {
+          "type": "string",
+          "description": "Optional operator to use",
+          "example": "KPN"
+        },
+        "smsmessage": {
+          "type": "string",
+          "description": "The text message to send",
+          "example": "This is an SMS message"
+        },
+        "source": {
+          "type": "string",
+          "description": "The name of the source system",
+          "example": "SN"
+        }
+
+      }
+
+    },
+    "Post200ApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "FunctionalEndpointSuccess"
+            },
+            "message": {
+              "type": "string",
+              "example": "SMS message send successfully."
+            }
+          }
+        }
+      }
+    },
+    "Post400ApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "TriggerInputSchemaMismatch"
+            },
+            "message": {
+              "type": "string",
+              "example": "The input body for trigger 'manual' of type 'Request' did not match its schema definition. Error details: 'Required properties are missing from object: source, mobilephones, smsmessage, caseid. "
+            }
+          }
+        }
+      }
+    },
+    "POST500ApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "TechnicalEndpointFailure"
+            },
+            "message": {
+              "type": "string",
+              "example": "Original Endpoint Error: <<Message thrown by the original endpoint>>"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

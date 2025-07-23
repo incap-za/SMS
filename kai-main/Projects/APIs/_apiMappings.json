@@ -1,0 +1,1175 @@
+{
+  "apis": [
+    {
+      "id": "ase-kpnsngr-ticket-ob-api",
+      "path": "ase-kpnsngr-ticket-ob",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-ticketrest",
+          "logicAppName": "{{env}}-ticket-kpnsn-gen-rest-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "kpnsn-gen-rest-wf",
+          "logicAppWorkflowTriggerName": "kpnsn-gen-rest-wf"
+        },
+        {
+          "id": "post-ticketmail",
+          "logicAppName": "{{env}}-ticket-kpnsn-gen-mail-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "kpnsn-gen-mail-wf",
+          "logicAppWorkflowTriggerName": "kpnsn-gen-mail-wf"
+        },
+        {
+          "id": "post-ticketcustom",
+          "logicAppName": "{{env}}-ticket-kpnsn-custom-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "kpnsn-custom-wf",
+          "logicAppWorkflowTriggerName": "kpnsn-custom-wf"
+        }
+      ]
+    },
+    {
+      "id": "ase-kpn-snred-ticket-ob-api",
+      "path": "ase-kpn-snred-ticket-ob",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-ticketrest",
+          "logicAppName": "{{env}}-ticket-kpnsn-gen-rest-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "kpnsn-gen-rest-wf",
+          "logicAppWorkflowTriggerName": "kpnsn-gen-rest-wf"
+        }
+      ]
+    },
+    {
+      "id": "ase-cmdb-kpnsngr-api",
+      "path": "ase-cmdb-kpn-sngr",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "ci",
+          "logicAppName": "{{env}}-cmdb-gen-kpnsn-rest-la",
+          "logicAppResourceGroupName": "{{env}}-cmdb-rg",
+          "logicAppWorkflowName": "cmdb-gen-kpnsn-rest-wf",
+          "logicAppWorkflowTriggerName": "cmdb-gen-kpnsn-rest-wf"
+        },
+        {
+          "id": "get-ci-details",
+          "logicAppName": "{{env}}-cmdb-gen-kpnsn-rest-la",
+          "logicAppResourceGroupName": "{{env}}-cmdb-rg",
+          "logicAppWorkflowName": "cmdb-getcidetails-wf",
+          "logicAppWorkflowTriggerName": "cmdb-getcidetails-wf",
+          "logicAppTriggerRelativePathToQuery": "name"
+        },
+        {
+          "id": "get-ci-relation",
+          "logicAppName": "{{env}}-cmdb-gen-kpnsn-rest-la",
+          "logicAppResourceGroupName": "{{env}}-cmdb-rg",
+          "logicAppWorkflowName": "cmdb-getcirelation-wf",
+          "logicAppWorkflowTriggerName": "cmdb-getcirelation-wf",
+          "logicAppTriggerRelativePathToQuery": "name"
+        }
+      ]
+    },
+    {
+      "id": "ase-kpn-sngr-ticket-ob-temp-api",
+      "path": "ase-kpn-sngr-ticket-ob-temp",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-updateticket",
+          "logicAppName": "{{env}}-rest-ib-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "r-post-update-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "r-post-update-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "sndatahub-api",
+      "path": "sndatahub",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "dictionary",
+          "logicAppName": "{{env}}-rest-ib-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-sndatahub-dictionary-wf",
+          "logicAppWorkflowTriggerName": "json-r-sndatahub-dictionary-wf"
+        },
+        {
+          "id": "store-data",
+          "logicAppName": "{{env}}-rest-ib-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-sndatahub-store-data-wf",
+          "logicAppWorkflowTriggerName": "json-r-sndatahub-store-data-wf"
+        }
+      ]
+    },
+    {
+      "id": "cmdb-snred-kpnsngr-sync-api",
+      "path": "cmdb-kpnsnred-kpnsngr",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-cmdb-data",
+          "logicAppName": "{{env}}-rest-ib-snred-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-cmdb-snred-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-cmdb-snred-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "query-kpn-servicenow-api",
+      "path": "query-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "get-query",
+          "logicAppName": "{{env}}-api-dataquery-la",
+          "logicAppResourceGroupName": "{{env}}-cmdb-rg",
+          "logicAppWorkflowName": "get-dataquery-wf",
+          "logicAppWorkflowTriggerName": "get-dataquery-wf",
+          "logicAppTriggerRelativePathToQuery": "query"
+        }
+      ]
+    },
+    {
+      "id": "bi-mail-api",
+      "path": "bi-mail",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "sendmail",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppName": "{{env}}-rest-ib-bi-mail-la",
+          "logicAppWorkflowName": "json-r-bi-mail-wf",
+          "logicAppWorkflowTriggerName": "json-r-bi-mail-wf"
+        }
+      ]
+    },
+    {
+      "id": "service-request-kpn-servicenow-api",
+      "path": "servicerequest-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newkpnservicerequest",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-order-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-order-gen-kpnsn-wf"
+        },
+        {
+          "id": "patch-updatekpnservicerequest",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-order-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-order-gen-kpnsn-wf"
+        },
+        {
+          "id": "get-kpnservicerequest",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-order-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-order-gen-kpnsn-wf",
+          "logicAppTriggerRelativePathToQuery": "ticket_number"
+        },
+        {
+          "id": "get-active-kpnservicerequest",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-order-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-order-gen-kpnsn-wf"
+        }
+      ]
+    },
+    {
+      "id": "administrative-servicerequest-kpn-servicenow-api",
+      "path": "admservicerequest-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-admservicerequest",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "admservicerequest-post-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "admservicerequest-post-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "change-request-kpn-servicenow-api",
+      "path": "changerequest-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newchange",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "change-post-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "change-post-kpnsngr-wf"		        
+        },
+        {
+          "id": "patch-updatechange",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "change-patch-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "change-patch-kpnsngr-wf"
+        },
+        {
+          "id": "get-change",
+		  		"logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "change-get-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "change-get-kpnsngr-wf",	
+          "logicAppTriggerRelativePathToQuery": "ticket_number"
+        },
+        {
+          "id": "get-active-changes",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "change-get-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "change-get-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "incident-light-kpn-servicenow-api",
+      "path": "incident-light-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newincident",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-incident-light-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-incident-light-kpnsn-wf"
+        },
+        {
+          "id": "get-incident",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-incident-light-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-incident-light-kpnsn-wf",
+          "logicAppTriggerRelativePathToQuery": "ticket_number"
+        },
+        {
+          "id": "get-active-incident",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-incident-light-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-incident-light-kpnsn-wf"
+        },
+        {
+          "id": "patch-updateincident",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-incident-light-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-incident-light-kpnsn-wf"
+        }
+      ]
+    },
+    {
+      "id": "task-kpn-servicenow-api",
+      "path": "task-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "patch-updatetask",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-task-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-task-gen-kpnsn-wf"
+        },
+        {
+          "id": "get-task",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-task-gen-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-task-gen-kpnsn-wf",
+          "logicAppTriggerRelativePathToQuery": "ticket_number"
+        }
+      ]
+    },
+    {
+      "id": "grip-kpn-servicenow-api",
+      "path": "grip-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-user",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-grip-create-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-grip-create-kpnsn-wf",
+          "logicAppTriggerMethod": "post"
+        },
+        {
+          "id": "put-user",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-grip-update-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-grip-update-kpnsn-wf",
+          "logicAppTriggerMethod": "put",
+          "logicAppTriggerRelativePathToQuery": "id"
+        },
+        {
+          "id": "delete-user",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-grip-delete-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "json-r-grip-delete-kpnsn-wf",
+          "logicAppTriggerMethod": "delete",
+          "logicAppTriggerRelativePathToQuery": "id"
+        }
+      ]
+    },
+    {
+        "id": "ticket-kpn-v3-api",
+    "path": "ticket-kpn-v3",
+    "products": [
+      {
+        "id": "basicauthproduct"
+      }
+    ],
+    "operations": [
+      {
+        "id": "post-incident",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      },
+      {
+        "id": "patch-incident",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      },
+      {
+        "id": "post-change",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      },
+      {
+        "id": "patch-change",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      },
+      {
+        "id": "post-request",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      },
+      {
+        "id": "patch-request",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-igv3-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-igv3-gen-kpnsn-wf"
+      }
+    ]
+  },
+  {
+    "id": "call-kpn-servicenow-api",
+    "path": "call-kpn-sn",
+    "products": [
+      {
+        "id": "basicauthproduct"
+      }
+    ],
+    "operations": [
+      {
+        "id": "post-newcall",
+        "logicAppName": "{{env}}-rest-ib-gen-kpnsn-la",
+        "logicAppResourceGroupName": "{{env}}-as-is-rg",
+        "logicAppWorkflowName": "json-r-post-call-gen-kpnsn-wf",
+        "logicAppWorkflowTriggerName": "json-r-post-call-gen-kpnsn-wf"
+      }
+    ]
+  },
+
+    {
+      "id": "sharepoint-kpn-api",
+      "path": "sharepoint-kpn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-sharepoint",
+          "logicAppName": "{{env}}-rest-iob-kpnmid-shpt-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-file-kpnmid-shpt-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-file-kpnmid-shpt-wf"
+        }
+      ]
+    },
+    {
+      "id": "cmdb-kpnsngr-api",
+      "path": "cmdb-kpn-sngr",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "get-ci-details",
+          "logicAppTriggerRelativePathToQuery": "name",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-cmdbcidetails-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-cmdbcidetails-gen-kpnsngr-wf"
+        },
+        {
+          "id": "post-ci",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-ci-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-ci-gen-kpnsngr-wf"
+        },
+        {
+          "id": "patch-ci",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-ci-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-ci-gen-kpnsngr-wf"
+        },
+        {
+          "id": "post-ci-relation",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-ci-relation-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-ci-relation-gen-kpnsngr-wf"
+        },
+        {
+          "id": "get-ci-relation",
+          "logicAppTriggerRelativePathToQuery": "name",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-cirelation-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-cirelation-gen-kpnsngr-wf"
+        },
+        {
+          "id": "delete-ci-relation",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-delete-ci-relation-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-delete-ci-relation-gen-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "complaint-kpn-servicenow-api",
+      "path": "complaint-kpn-sngr",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newcomplaint",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-complaint-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-complaint-gen-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "em-kpn-servicenow-api",
+      "path": "em-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newevent",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-event-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-event-gen-kpnsngr-wf"
+        },
+        {
+          "id": "get-event",
+          "logicAppTriggerRelativePathToQuery": "reference_number",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-event-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-event-gen-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "incident-kpn-servicenow-api",
+      "path": "incident-kpn-sn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newincident",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "incident-post-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "incident-post-kpnsngr-wf"
+        },
+        {
+          "id": "get-incident",
+          "logicAppTriggerRelativePathToQuery": "ticket_number",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "incident-get-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "incident-get-kpnsngr-wf"
+        },
+        {
+          "id": "get-active-incident",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "incident-get-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "incident-get-kpnsngr-wf"
+        },
+        {
+          "id": "patch-updateincident",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "incident-patch-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "incident-patch-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "problem-kpn-servicenow-api",
+      "path": "problem-kpn-sngr",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newproblem",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-problem-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-problem-gen-kpnsngr-wf"
+        },
+        {
+          "id": "patch-updateproblem",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-problem-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-problem-gen-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "rmtask-kpnsngr-api",
+      "path": "rmtask-kpn-sngr",
+      "version": "openapi",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-rmtask",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-rmtask-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-rmtask-kpnsngr-wf"
+        },
+        {
+          "id": "patch-rmtask",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-rmtask-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-rmtask-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "task-kpn-sngr-api",
+      "path": "task-kpn-sngr",
+      "version": "openapi",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "patch-updatetask",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-patch-task-gengr-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-patch-task-gengr-kpnsngr-wf"
+        },
+        {
+          "id": "get-task",
+          "logicAppTriggerRelativePathToQuery": "ticket_number",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-task-gengr-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-task-gengr-kpnsngr-wf"
+        },
+        {
+          "id": "get-open-tasks",
+          "logicAppName": "{{env}}-rest-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-task-gengr-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-task-gengr-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "planmaint-kpn-api",
+      "path": "planmaint-kpn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "planmaint-request",
+          "logicAppName": "{{env}}-rest-ib-planmaint-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-planmaint-kpn-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-planmaint-kpn-wf"
+        }
+      ]
+    },
+    {
+      "id": "planned-maintenance-api",
+      "path": "planned-maint",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "plannedmaint-request",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "plannedmaint-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "plannedmaint-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "kpn-sngr-ticket-ob-api",
+      "path": "kpn-sngr-ticket-ob",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-updateticket",
+          "logicAppName": "{{env}}-rest-ib-planmaint-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-update-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-update-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "ticket-kpn-v3-soap-api",
+      "path": "ticket-kpn-v3-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-igv3-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-igv3-gen-wf",
+          "logicAppWorkflowTriggerName": "xml-r-igv3-gen-wf"
+        }
+      ]
+    },
+    {
+      "id": "sms-kpn-soap-api",
+      "path": "sms-kpn-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-send",
+          "logicAppName": "{{env}}-soap-ib-sms-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-post-sms-wf",
+          "logicAppWorkflowTriggerName": "xml-r-post-sms-wf"
+        }
+      ]
+    },
+    {
+      "id": "sms-kpn-rest-api",
+      "path": "sms-kpn-rest",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-send",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "sms-post-kpnsms-wf",
+          "logicAppWorkflowTriggerName": "sms-post-kpnsms-wf"
+        }
+      ]
+    },
+    {
+      "id": "kpn-order-osc-api",
+      "path": "order-kpn-osc",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-order-osc",
+          "logicAppName": "{{env}}-rest-ib-gen-osc-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-order-gen-osc-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-order-gen-osc-wf"
+        },
+        {
+          "id": "get-data-osc",
+          "logicAppName": "{{env}}-rest-ib-gen-osc-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-get-data-gen-osc-wf",
+          "logicAppWorkflowTriggerName": "json-r-get-data-gen-osc-wf"
+        }
+      ]
+    },
+    {
+      "id": "iam-omnicrm-api",
+      "path": "iam-omnicrm",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-rest-ib-iam-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-iam-omnicrm-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-iam-omnicrm-wf"
+        }
+      ]
+    },
+    {
+      "id": "kpn-osc-order-ob-soap-api",
+      "path": "kpn-osc-order-ob-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-updateorder",
+          "logicAppName": "{{env}}-soap-ib-osc-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-post-order-osc-wf",
+          "logicAppWorkflowTriggerName": "xml-r-post-order-osc-wf"
+        }
+      ]
+    },
+    {
+      "id": "ticket-kpn-v1-soap-api",
+      "path": "ticket-kpn-v1-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-igv1-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-igv1-gen-wf",
+          "logicAppWorkflowTriggerName": "xml-r-igv1-gen-wf"
+        }
+      ]
+    },
+    {
+      "id": "ticket-kpn-v2-soap-api",
+      "path": "ticket-kpn-v2-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-igv2-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-igv2-gen-wf",
+          "logicAppWorkflowTriggerName": "xml-r-igv2-gen-wf"
+        }
+      ]
+    },
+    {
+      "id": "incident-annet-soap-api",
+      "path": "incident-annet-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-annet-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-post-annet-kpnsn-wf",
+          "logicAppWorkflowTriggerName": "xml-r-post-annet-kpnsn-wf"
+        }
+      ]
+    },
+    {
+      "id": "ticket-uwv-kpn-soap-api",
+      "path": "ticket-uwv-kpn-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-uwv-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-uwv-wf",
+          "logicAppWorkflowTriggerName": "xml-r-uwv-wf"
+        },
+        {
+          "id": "post-response",
+          "logicAppName": "{{env}}-soap-ib-uwv-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-uwv-wf",
+          "logicAppWorkflowTriggerName": "xml-r-uwv-wf"
+        }
+      ]
+    },
+    {
+      "id": "userdata-rws-kpn-soap-api",
+      "path": "userdata-rws-kpn-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-soap-ib-rws-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-userdata-rws-wf",
+          "logicAppWorkflowTriggerName": "xml-r-userdata-rws-wf"
+        }
+      ]
+    },
+    {
+      "id": "ticket-jira-kpn-sn-api",
+      "path": "ticket-jira-kpn-sn",
+      "products": [
+        {
+          "id": "paramauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-updateticket",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "jira-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "jira-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "kpn-bart-api",
+      "path": "request-kpn-bart",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-request",
+          "logicAppName": "{{env}}-rest-ib-gen-nssn-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "json-r-post-bart-ns-wf",
+          "logicAppWorkflowTriggerName": "json-r-post-bart-ns-wf"
+        }
+      ]
+    },
+    {
+      "id": "em-kpn-servicenow-soap-api",
+      "path": "em-kpn-sn-soap",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newevent",
+          "logicAppName": "{{env}}-soap-ib-gen-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-as-is-rg",
+          "logicAppWorkflowName": "xml-r-post-event-gen-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "xml-r-post-event-gen-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "customerconnect-api",
+      "path": "customerconnect-kpnsngr",
+      "version": "openapi",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "ticketupdates-get",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticketupdates-get-wf",
+          "logicAppWorkflowTriggerName": "ticketupdates-get-wf"
+        },
+        {
+          "id": "ticket-post",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticket-post-wf",
+          "logicAppWorkflowTriggerName": "ticket-post-wf"
+        },
+        {
+          "id": "ticket-patch",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticket-patch-wf",
+          "logicAppWorkflowTriggerName": "ticket-patch-wf"
+        },
+        {
+          "id": "task-patch",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticket-patch-wf",
+          "logicAppWorkflowTriggerName": "ticket-patch-wf"
+        },
+        {
+          "id": "ticket-get",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticket-get-wf",
+          "logicAppWorkflowTriggerName": "ticket-get-wf"
+        },
+        {
+          "id": "ticket-list",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "ticket-list-wf",
+          "logicAppWorkflowTriggerName": "ticket-list-wf"
+        },
+        {
+          "id": "get-attachment",
+          "logicAppTriggerRelativePathToQuery": "attachment_id",
+          "logicAppName": "{{env}}-api-customerconnect-kpnsngr-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "attachment-get-wf",
+          "logicAppWorkflowTriggerName": "attachment-get-wf"
+        }
+      ]
+    },
+    {
+      "id": "zsmart-response-soap-api",
+      "path": "zsmart-response",
+      "products": [
+        {
+          "id": "headerauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-response",
+          "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "zsmart-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "zsmart-kpnsngr-wf"
+        }
+      ]
+    },
+    {
+      "id": "fieldservice-kpn-api",
+      "path": "field-service",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newappointment",
+          "logicAppName": "{{env}}-ticket-fsm-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "fsm-r-appointment-kpnsn-gen-wf",
+          "logicAppWorkflowTriggerName": "fsm-r-appointment-kpnsn-gen-wf"
+        },
+        {
+          "id": "patch-updateappointment",
+          "logicAppTriggerRelativePathToQuery": "provider_reference_number",
+          "logicAppName": "{{env}}-ticket-fsm-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "fsm-r-appointment-kpnsn-gen-wf",
+          "logicAppWorkflowTriggerName": "fsm-r-appointment-kpnsn-gen-wf"
+        },
+        {
+          "id": "get-timeslot",
+          "logicAppTriggerRelativePathToQuery": "provider_reference_number",
+          "logicAppName": "{{env}}-ticket-fsm-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "fsm-r-getsearchtimeslot-kpnsn-gen-wf",
+          "logicAppWorkflowTriggerName": "fsm-r-getsearchtimeslot-kpnsn-gen-wf"
+        },
+        {
+          "id": "patch-timeslot",
+          "logicAppTriggerRelativePathToQuery": "provider_reference_number",
+          "logicAppName": "{{env}}-ticket-fsm-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "fsm-r-patchsearchtimeslot-kpnsn-gen-wf",
+          "logicAppWorkflowTriggerName": "fsm-r-patchsearchtimeslot-kpnsn-gen-wf"
+        }
+      ]
+    },
+        {
+      "id": "internal-change-kpn-servicenow-api",
+      "path": "internal-changerequest-kpnsn",
+      "products": [
+        {
+          "id": "basicauthproduct"
+        }
+      ],
+      "operations": [
+        {
+          "id": "post-newchange",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "internal-change-post-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "internal-change-post-kpnsngr-wf"		        
+        },
+        {
+          "id": "patch-updatechange",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "internal-change-patch-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "internal-change-patch-kpnsngr-wf"
+        },
+        {
+          "id": "get-activechanges",
+		      "logicAppName": "{{env}}-api-ticket-la",
+          "logicAppResourceGroupName": "{{env}}-ticket-rg",
+          "logicAppWorkflowName": "internal-change-get-kpnsngr-wf",
+          "logicAppWorkflowTriggerName": "internal-change-get-kpnsngr-wf"
+        }
+      ]
+    }
+  ]
+}
