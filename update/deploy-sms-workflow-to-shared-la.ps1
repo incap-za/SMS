@@ -46,9 +46,9 @@ Set-AzContext -SubscriptionId $SubscriptionId
 
 # Variables
 $ResourceGroupName = "$Environment-as-is-rg"
-$SharedLogicAppName = "dev-api-ticket-la"  # Using the correct Logic App name
+$SharedLogicAppName = "$Environment-api-ticket-la"
 $WorkflowName = "sms-post-kpnsms-wf"
-$WorkflowFilePath = "$GitDirectory\LogicApps\dev-api-ticket-la\workflows\$WorkflowName.json"
+$WorkflowFilePath = "$GitDirectory\LogicApps\$Environment-api-ticket-la\workflows\$WorkflowName.json"
 
 Write-Host "Deploying SMS workflow to shared Logic App..." -ForegroundColor Green
 Write-Host "Environment: $Environment"
@@ -154,7 +154,7 @@ Write-Host "App Settings updated successfully!" -ForegroundColor Green
 # Create or update connections.json if needed
 Write-Host "Checking workflow connections..." -ForegroundColor Yellow
 
-$connectionsPath = "$GitDirectory\LogicApps\dev-api-ticket-la\connections.json"
+$connectionsPath = "$GitDirectory\LogicApps\$Environment-api-ticket-la\connections.json"
 if (Test-Path $connectionsPath) {
     Write-Host "Connections.json found, no update needed." -ForegroundColor Green
 } else {
