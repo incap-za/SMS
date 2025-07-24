@@ -40,9 +40,13 @@ CD "$GitDirectory\Deployment\SQLDeployment"
 if($GitDirectory -ne "C:\src\repositories\kai-main"){
     # SQL SCRIPT
     # To KAI-DB
-    .\Deploy-SQL -Environment $Environment -SqlScriptPath "$GitDirectory\DeploymentScripts\2025\KAI-112191-SMS-Workflow-Provider-Update\sms-token-config.sql"
+    .\Deploy-SQL -Environment $Environment -SqlScriptPath "$GitDirectory\DeploymentScripts\2025\KAI-112191-SMS-Workflow-Provider-Update\RoutingTokenConfig.sql"
 }
 
 CD "$GitDirectory\Deployment\LogicApps"
 # Deploy Workflow
 .\DeployWF -Environment $Environment -LogicAppFolder "api-ticket-la" -BranchName $BranchName
+
+# Deploy api 
+CD "$GitDirectory\Deployment\APIManagement"
+.\DeployApi -Environment $Environment -SwaggerFileName "sms-kpn-rest-api.json"
