@@ -1,4 +1,18 @@
 {
+    "wfparameters": {
+        "logicappName": {
+            "type": "String",
+            "value": "{{env}}-ticket-shared-la"
+        },
+        "resourceGroup": {
+            "type": "String",
+            "value": "{{env}}-ticket-rg"
+        },
+        "environment": {
+            "type": "String",
+            "value": "{{env}}"
+        }
+    },
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
@@ -7,7 +21,7 @@
                 "inputs": {
                     "host": {
                         "workflow": {
-                            "id": "json-s-get-token-wf"
+                            "id": "@{concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/{{resourceGroup}}/providers/Microsoft.Web/sites/{{logicappName}}/workflows/kpnsn-gen-gettoken-wf')}"
                         }
                     },
                     "body": {
