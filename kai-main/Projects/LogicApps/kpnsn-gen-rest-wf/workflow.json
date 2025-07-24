@@ -1,0 +1,754 @@
+{
+    "wfparameters": {
+        "logicappName": {
+            "type": "String",
+            "value": "{{env}}-ticket-kpnsn-gen-rest-la"
+        },
+        "resourceGroup": {
+            "type": "String",
+            "value": "{{env}}-ticket-rg"
+        },
+        "errorlogLa": {
+            "type": "String",
+            "value": "{{env}}-ticket-shared-la"
+        },
+        "environment": {
+            "type": "String",
+            "value": "{{env}}"
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {            
+            "EndRunOutside": {
+                "inputs": {
+                    "runStatus": "Succeeded"
+                },
+                "runAfter": {
+                    "CreateAlert": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Terminate"
+            },
+            "CreateAlert": {
+                "actions": {
+                    "KaiEvent": {
+                        "inputs": {
+							"authentication": {
+                                "audience": "@{parameters('oAuth')?['audience']}",
+                                "identity": "@{concat('/subscriptions/', parameters('subscriptionId'), '/resourcegroups/kai-{{environment}}-shared-ase-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{environment}}-ase-uami')}",
+                                "type": "ManagedServiceIdentity"
+                            },
+                            "body": {
+                                "callbackurl": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                                "errordescription": "Action @{outputs('ScopeFilterFailedAction')?['body']?[0]?['name']} failed\nStatus Code:  @{outputs('ScopeFilterFailedAction')?['body']?[0]?['outputs']?['statusCode']}\nDescription:  @{outputs('ScopeFilterFailedAction')?['body']?[0]?['outputs']?['body']?['message']}\n@{outputs('ScopeFilterFailedAction')?['body']?[0]?['error']?['message']}",
+                                "errortype": "Transformation Failure",
+                                "logicapp": "{{logicappName}}",
+                                "message_key": "@{body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['Source']}:@{triggerBody()['destination']}:ticket:genrest",
+                                "resourcegroup": "{{resourceGroup}}",
+                                "runID": "@{workflow()['run']['name']}",
+                                "severity": "2",
+                                "source": "@{body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['Source']}",
+                                "workflow": "@{workflow()['name']}"
+                            },
+                            "method": "POST",
+                            "retryPolicy": {
+                                "type": "none"
+                            },
+                            "uri": "https://{{environment}}-ticket-shared-la.kai-{{environment}}-shared-ase.appserviceenvironment.net:443/api/errorlog-wf/triggers/errorlog-wf/invoke?api-version=2022-05-01&sp=%2Ftriggers%2Ferrorlog-wf%2Frun&sv=1.0"
+                        },
+                        "type": "Http"
+                    },
+                    "ScopeFailureResponse": {
+                        "inputs": {
+                            "body": {
+                                "error": {
+                                    "code": "@if(equals(body('SPGetRoutingOutboundRest')?['ResultSets']?[0][0]?['Source'],'KPN-SNGR'),'TransformationFailure','TechnicalEndpointFailure')",
+                                    "message": "A transformation error occurred, the message has not been sent to the destination."
+                                }
+                            },
+                            "statusCode": "@if(equals(body('SPGetRoutingOutboundRest')?['ResultSets']?[0][0]?['Source'],'KPN-SNGR'),418,500)"
+                        },
+                        "kind": "Http",
+                        "runAfter": {
+                            "KaiEvent": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Response"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "ScopeFailureResponse1": {
+                            "inputs": {
+                                "body": {
+                                    "error": {
+                                        "code": "TechnicalEndpointFailure",
+                                        "message": "An error occurred please try again later, the message has not been sent to the destination.\nApp: {{logicappName}}\nWorkflow: @{workflow()?['name']}\nRunID: @{workflow()?['run']?['name']}"
+                                    }
+                                },
+                                "statusCode": 500
+                            },
+                            "kind": "Http",
+                            "type": "Response"
+                        }
+                    }
+                },
+                "expression": {
+                    "or": [
+                        {
+                            "equals": [
+                                "@body('ScopeFilterFailedAction')?[0]?['name']",
+                                "Transform"
+                            ]
+                        },
+                        {
+                            "equals": [
+                                "@body('ScopeFilterFailedAction')?[0]?['name']",
+                                "TransformInput"
+                            ]
+                        },
+                        {
+                            "equals": [
+                                "@body('ScopeFilterFailedAction')?[0]?['name']",
+                                "ResponseData"
+                            ]
+                        },
+                        {
+                            "equals": [
+                                "@body('ScopeFilterFailedAction')?[0]?['name']",
+                                "ResponseDataOAuth"
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "ScopeFilterFailedAction": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "If"
+            },
+            "Scope": {
+                "actions": {
+                    "Switch": {
+                        "cases": {
+                            "attachment": {
+                                "actions": {
+                                    "AttachmentPost": {
+                                        "inputs": {
+										"authentication": {
+											"audience": "@{parameters('oAuth')?['audience']}",
+											"identity": "@{concat('/subscriptions/', parameters('subscriptionId'), '/resourcegroups/kai-{{environment}}-shared-ase-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{environment}}-ase-uami')}",
+											"type": "ManagedServiceIdentity"
+											},
+                                            "body": {
+                                                "requestData": "@triggerBody()",
+                                                "restConfig":{
+                                                    "Destination": "@triggerBody()?['destination']",
+                                                    "AuthMethod": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['AuthMethod']",
+                                                    "BaseUrl": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['BaseUrl']",
+                                                    "UserName": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['UserName']",
+                                                    "KeyvaultEntry": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['KeyvaultEntry']",
+                                                    "Source": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['Source']"
+                                                }
+                                            },
+                                            "method": "POST",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "https://{{environment}}-ticket-shared-la.kai-{{environment}}-shared-ase.appserviceenvironment.net:443/api/outbound-kpnsn-gen-att-wf/triggers/outbound-kpnsn-gen-att-wf/invoke?api-version=2022-05-01&sp=%2Ftriggers%2Foutbound-kpnsn-gen-att-wf%2Frun&sv=1.0"
+                                        },
+                                        "trackedProperties": {
+                                            "action_type": "attachment",
+                                            "destination": "@triggerBody()?['destination']",
+                                            "extra_info": "",
+                                            "logicApp": "{{logicappName}}",
+                                            "process_type": "@triggerBody()?['process_type']",
+                                            "reference_number": "@triggerBody()?['reference_number']",
+                                            "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                                            "source": "@action()?['inputs']?['body']?['restConfig']?['source']",
+                                            "ticket_number": "@triggerBody()?['ticket_number']"
+                                        },
+                                        "type": "Http"
+                                    },
+                                    "EndRunAtt": {
+                                        "inputs": {
+                                            "runStatus": "Succeeded"
+                                        },
+                                        "runAfter": {
+                                            "ResponseAtt": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "Terminate"
+                                    },
+                                    "ResponseAtt": {
+                                        "inputs": {
+                                            "body": "@body('AttachmentPost')",
+                                            "statusCode": "@outputs('AttachmentPost')?['statusCode']"
+                                        },
+                                        "kind": "Http",
+                                        "runAfter": {
+                                            "AttachmentPost": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "Response"
+                                    }
+                                },
+                                "case": "attachment"
+                            },
+                            "basic": {
+                                "actions": {
+                                    "EndRun": {
+                                        "inputs": {
+                                            "runStatus": "Succeeded"
+                                        },
+                                        "runAfter": {
+                                            "Response": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "Terminate"
+                                    },
+                                    "GetSecret": {
+                                        "inputs": {
+                                            "parameters": {
+                                                "secretName": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['KeyvaultEntry']"
+                                            },
+                                            "serviceProviderConfiguration": {
+                                                "connectionName": "keyVault",
+                                                "operationId": "getSecret",
+                                                "serviceProviderId": "/serviceProviders/keyVault"
+                                            }
+                                        },
+                                        "runtimeConfiguration": {
+                                            "secureData": {
+                                                "properties": [
+                                                    "outputs"
+                                                ]
+                                            }
+                                        },
+                                        "type": "ServiceProvider"
+                                    },
+                                    "Response": {
+                                        "inputs": {
+                                            "body": "@outputs('ResponseData')?['body']",
+                                            "statusCode": "@outputs('ResponseData')?['statusCode']"
+                                        },
+                                        "kind": "Http",
+                                        "runAfter": {
+                                            "ResponseData": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "Response"
+                                    },
+                                    "ResponseData": {
+                                        "inputs": {
+                                            "code": "var response = {};\r\nresponse.body = {};\r\nvar responseStr = JSON.parse(workflowContext.actions.SPGetRoutingOutboundRest.outputs.body.ResultSets[0][0].ResponseStructure);\r\nvar triggerBody = workflowContext.trigger.outputs.body;\r\nvar httpResponse = workflowContext.actions.SendHttp;\r\n\r\n//test functionalSuccess\r\nif(funcConstructor(responseStr.functionalSuccess.condition, httpResponse))\r\n{\r\n    response.body.result = {};\r\n    response.statusCode = 200;\r\n    response.body.result.ticket_number = funcConstructor(responseStr.functionalSuccess.ticketNumber, httpResponse, triggerBody); \r\n    response.body.result.reference_number = funcConstructor(responseStr.functionalSuccess.referenceNumber, httpResponse, triggerBody); \r\n    response.body.result.note = response.body.result.ticket_number + \" is successfully processed\"; \r\n    response.body.result.state = triggerBody.state;\r\n    response.body.result.source = triggerBody.destination;\r\n}\r\n//test functionalFailure\r\nelse if(funcConstructor(responseStr.functionalFailure.condition, httpResponse)){\r\n    response.body.error = {};\r\n    response.statusCode = 400;\r\n    response.body.error.code = \"FunctionalEndpointFailure\";\r\n    response.body.error.message = funcConstructor(responseStr.functionalFailure.error, httpResponse, triggerBody); \r\n}\r\nelse {\r\n    response.body.error = {};\r\n    response.statusCode = 500;\r\n    response.body.error.code = \"TechnicalEndpointFailure\";    \r\n    response.body.error.message = funcConstructor(responseStr.technicalFailure.error, httpResponse, triggerBody); \r\n}\r\n\r\n\r\nfunction funcConstructor(body, httpResponse, triggerBody){\r\n    return new Function(\"httpResponse\", \"triggerBody\", body)(httpResponse, triggerBody)\r\n}\r\n\r\nreturn response;"
+                                        },
+                                        "runAfter": {
+                                            "SendHttp": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "JavaScriptCode"
+                                    },
+                                    "SendHttp": {
+                                        "inputs": {
+                                            "authentication": {
+                                                "password": "@{body('GetSecret')?['value']}",
+                                                "type": "Basic",
+                                                "username": "@{body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['UserName']}"
+                                            },
+                                            "body": "@body('Transform')?['requestBody']",
+                                            "headers": "@body('Transform')?['headers']",
+                                            "method": "@body('Transform')?['httpMethod']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@{body('Transform')?['fullUrl']}"
+                                        },
+                                        "runAfter": {
+                                            "GetSecret": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            },
+                                            "staticResult": {
+                                                "name": "HttpBasic0",
+                                                "staticResultOptions": "Disabled"
+                                            }
+                                        },
+                                        "trackedProperties": {
+                                            "action_type": "@triggerBody()?['action_type']",
+                                            "destination": "@triggerBody()?['destination']",
+                                            "extra_info": "@{coalesce(triggerBody()?['ticket_attributes']?['close_code'],triggerBody()?['ticket_attributes']?['on_hold_reason'],triggerBody()?['state'],'')}",
+                                            "logicApp": "{{logicappName}}",
+                                            "process_type": "@triggerBody()?['process_type']",
+                                            "reference_number": "@triggerBody()?['reference_number']",
+                                            "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                                            "source": "@triggerOutputs()['headers']['username']",
+                                            "ticket_number": "@triggerBody()?['ticket_number']"
+                                        },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "basic"
+                            },
+                            "dump": {
+                                "actions": {
+                                    "EndRunDump": {
+                                        "inputs": {
+                                            "runStatus": "Succeeded"
+                                        },
+                                        "runAfter": {
+                                            "ResponseDump": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "Terminate"
+                                    },
+                                    "ResponseDump": {
+                                        "inputs": {
+                                            "body": {
+                                                "result": {
+                                                    "note": "@{triggerBody()['ticket_number']} is dumped",
+                                                    "reference_number": "@{triggerBody()?['reference_number']}",
+                                                    "source": "@{triggerBody()['destination']}",
+                                                    "state": "@{triggerBody()?['state']}",
+                                                    "ticket_number": "@{triggerBody()['ticket_number']}"
+                                                }
+                                            },
+                                            "statusCode": 200
+                                        },
+                                        "kind": "Http",
+                                        "type": "Response"
+                                    }
+                                },
+                                "case": "dump"
+                            },
+                            "oauth": {
+                                "actions": {
+                                    "EndRunOAuth": {
+                                        "inputs": {
+                                            "runStatus": "Succeeded"
+                                        },
+                                        "runAfter": {
+                                            "ResponseOAuth": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "Terminate"
+                                    },
+                                    "EndRunOnFailure": {
+                                        "inputs": {
+                                            "runStatus": "Succeeded"
+                                        },
+                                        "runAfter": {
+                                            "ResponseOnFailure": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "Terminate"
+                                    },
+                                    "GetToken": {
+                                        "inputs": {
+											"authentication": {
+												"audience": "@{parameters('oAuth')?['audience']}",
+												"identity": "@{concat('/subscriptions/', parameters('subscriptionId'), '/resourcegroups/kai-{{environment}}-shared-ase-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{environment}}-ase-uami')}",
+												"type": "ManagedServiceIdentity"
+													},
+                                            "body": {
+                                                "action_type": "@triggerBody()?['action_type']",
+                                                "destination": "@triggerBody()?['destination']",
+                                                "process_type": "@triggerBody()?['process_type']",
+                                                "reference_number": "@triggerBody()?['reference_number']",
+                                                "source": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['Source']",
+                                                "ticket_number": "@triggerBody()?['ticket_number']"
+                                            },
+                                            "method": "POST",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+										"uri": "https://{{environment}}-ticket-shared-la.kai-{{environment}}-shared-ase.appserviceenvironment.net:443/api/kpnsn-gen-gettoken-wf/triggers/kpnsn-gen-gettoken-wf/invoke?api-version=2022-05-01&sp=%2Ftriggers%2Fkpnsn-gen-gettoken-wf%2Frun&sv=1.0"
+                                        },
+                                        "runtimeConfiguration": {
+                                            "secureData": {
+                                              "properties": [
+                                                "outputs"
+                                              ]
+                                            }
+                                          },
+                                        "type": "Http"
+                                    },
+                                    "ResponseDataOAuth": {
+                                        "inputs": {
+                                            "code": "var response = {};\r\nresponse.body = {};\r\nvar responseStr = JSON.parse(workflowContext.actions.SPGetRoutingOutboundRest.outputs.body.ResultSets[0][0].ResponseStructure);\r\nvar triggerBody = workflowContext.trigger.outputs.body;\r\nvar httpResponse = workflowContext.actions.SendOAuth;\r\n\r\n//test functionalSuccess\r\nif(funcConstructor(responseStr.functionalSuccess.condition, httpResponse))\r\n{\r\n    response.body.result = {};\r\n    response.statusCode = 200;\r\n    response.body.result.ticket_number = funcConstructor(responseStr.functionalSuccess.ticketNumber, httpResponse, triggerBody); \r\n    response.body.result.reference_number = funcConstructor(responseStr.functionalSuccess.referenceNumber, httpResponse, triggerBody); \r\n    response.body.result.note = response.body.result.ticket_number + \" is successfully processed\"; \r\n    response.body.result.state = triggerBody.state;\r\n    response.body.result.source = triggerBody.destination;\r\n}\r\n//test functionalFailure\r\nelse if(funcConstructor(responseStr.functionalFailure.condition, httpResponse)){\r\n    response.body.error = {};\r\n    response.statusCode = 400;\r\n    response.body.error.code = \"FunctionalEndpointFailure\";\r\n    response.body.error.message = funcConstructor(responseStr.functionalFailure.error, httpResponse, triggerBody); \r\n}\r\nelse {\r\n    response.body.error = {};\r\n    response.statusCode = 500;\r\n    response.body.error.code = \"TechnicalEndpointFailure\";    \r\n    response.body.error.message = funcConstructor(responseStr.technicalFailure.error, httpResponse, triggerBody); \r\n}\r\n\r\n\r\nfunction funcConstructor(body, httpResponse, triggerBody){\r\n    return new Function(\"httpResponse\", \"triggerBody\", body)(httpResponse, triggerBody)\r\n}\r\n\r\nreturn response;"
+                                        },
+                                        "runAfter": {
+                                            "SendOAuth": [
+                                                "SUCCEEDED",
+                                                "TIMEDOUT",
+                                                "FAILED"
+                                            ]
+                                        },
+                                        "type": "JavaScriptCode"
+                                    },
+                                    "ResponseOAuth": {
+                                        "inputs": {
+                                            "body": "@outputs('ResponseDataOAuth')?['body']",
+                                            "statusCode": "@outputs('ResponseDataOAuth')?['statusCode']"
+                                        },
+                                        "kind": "Http",
+                                        "runAfter": {
+                                            "ResponseDataOAuth": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "Response"
+                                    },
+                                    "ResponseOnFailure": {
+                                        "inputs": {
+                                            "body": "@body('GetToken')",
+                                            "statusCode": "@outputs('GetToken')?['statusCode']"
+                                        },
+                                        "kind": "Http",
+                                        "runAfter": {
+                                            "GetToken": [
+                                                "FAILED",
+                                                "TIMEDOUT"
+                                            ]
+                                        },
+                                        "type": "Response"
+                                    },
+                                    "SendOAuth": {
+                                        "inputs": {
+                                            "body": "@body('Transform')?['requestBody']",
+                                            "headers": "@addProperty(body('Transform')?['headers'],'Authorization', concat('Bearer ', body('GetToken')?['token']))",
+                                            "method": "@body('Transform')?['httpMethod']",
+                                            "retryPolicy": {
+                                                "type": "none"
+                                            },
+                                            "uri": "@{body('Transform')?['fullUrl']}"
+                                        },
+                                        "runAfter": {
+                                            "GetToken": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "runtimeConfiguration": {
+                                            "secureData": {
+                                              "properties": [
+                                                "inputs"
+                                              ]
+                                            }
+                                          },
+                                        "type": "Http"
+                                    }
+                                },
+                                "case": "oauth"
+                            }
+                        },
+                        "default": {
+                            "actions": {}
+                        },
+                        "expression": "@toLower(if(equals(triggerBody()?['action_type'],'attachment'),'attachment',if(equals(body('Transform')?['outputAction'],'dump'),'dump',body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['AuthMethod'])))",
+                        "runAfter": {
+                            "Transform": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Switch"
+                    },                    
+                    "CheckAwaitingReference": {
+                        "type": "If",
+                        "expression": {
+                            "and": [
+                                {
+                                    "equals": [
+                                        "@triggerBody()?['reference_number']",
+                                        "awaiting_reference"
+                                    ]
+                                }
+                            ]
+                        },
+                        "actions": {
+                            "ResponseQueued": {
+                                "type": "Response",
+                                "kind": "Http",
+                                "inputs": {
+                                    "statusCode": 200,
+                                    "body": {
+                                        "result": {
+                                            "note": "@{triggerBody()?['ticket_number']} placed in Queue successfully",
+                                            "reference_number": "@{triggerBody()?['reference_number']}",
+                                            "source": "@{triggerBody()?['destination']}",
+                                            "state": "Success",
+                                            "ticket_number": "@{triggerBody()?['ticket_number']}"
+                                        }
+                                    }
+                                },
+                                "runAfter": {
+                                    "SPAwaitRefQueue": [
+                                        "SUCCEEDED"
+                                    ]
+                                }
+                            },
+                            "EndRunQueued": {
+                                "type": "Terminate",
+                                "inputs": {
+                                    "runStatus": "Succeeded"
+                                },
+                                "runAfter": {
+                                    "ResponseQueued": [
+                                        "SUCCEEDED"
+                                    ]
+                                }
+                            },
+                            "SPAwaitRefQueue": {
+                                "type": "ServiceProvider",
+                                "inputs": {
+                                    "parameters": {
+                                        "storedProcedureName": "kai.p_GEN_AwaitRefQueueInsert",
+                                        "storedProcedureParameters": {
+                                            "Source":"KPN-SNGR",
+                                            "Destination": "@triggerBody()['destination']",
+                                            "TicketNumber": "@triggerBody()['ticket_number']",
+                                            "ReferenceNumber": "@triggerBody()?['reference_number']",
+                                            "Company": "@triggerBody()?['ticket_attributes']?['company']?[0]?['krn']",
+                                            "Action": "@triggerBody()['action_type']",
+                                            "Message":"@{triggerBody()}", 
+                                            "LaName":"{{logicappName}}",
+                                            "WfName":"@workflow()?['name']",
+                                            "OriginalUserName": "@triggerOutputs()['headers']['username']",
+                                            "OriginalRunLink":"@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}"
+                                        }
+                                    },
+                                    "serviceProviderConfiguration": {
+                                        "connectionName": "sql-kpnb2b",
+                                        "operationId": "executeStoredProcedure",
+                                        "serviceProviderId": "/serviceProviders/sql"
+                                    },
+                                    "retryPolicy": {
+                                        "type": "none"
+                                    }
+                                },
+                                "trackedProperties": {
+                                    "action_type": "@{triggerBody()?['action_type']}-QUEUED",
+                                    "destination": "@triggerBody()?['destination']",
+                                    "extra_info": "@{coalesce(triggerBody()?['ticket_attributes']?['close_code'],triggerBody()?['ticket_attributes']?['on_hold_reason'],triggerBody()?['state'],'')}",
+                                    "logicApp": "{{logicappName}}",
+                                    "process_type": "@triggerBody()?['process_type']",
+                                    "reference_number": "@triggerBody()?['reference_number']",
+                                    "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                                    "source": "@triggerOutputs()['headers']['username']",
+                                    "ticket_number": "@triggerBody()?['ticket_number']"
+                                }
+                            }
+                        },
+                        "else": {
+                            "actions": {}
+                        }
+                    },
+                    "SPGetRoutingOutboundRest": {
+                        "inputs": {
+                            "parameters": {
+                                "storedProcedureName": "kai.p_GEN_GetRoutingOutboundRest",
+                                "storedProcedureParameters": {
+                                    "Action_type": "@{triggerBody()?['action_type']}",
+                                    "DebugMode": "N",
+                                    "Destination": "@{triggerBody()?['destination']}",
+                                    "Process_type": "@{triggerBody()?['process_type']}",
+                                    "SourceUserName": "@{triggerOutputs()['headers']['username']}"
+                                }
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "sql-kpnb2b",
+                                "operationId": "executeStoredProcedure",
+                                "serviceProviderId": "/serviceProviders/sql"
+                            }
+                        },
+                        "runAfter": {
+                            "CheckAwaitingReference": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "trackedProperties": {
+                            "action_type": "@triggerBody()?['action_type']",
+                            "destination": "@triggerBody()?['destination']",
+                            "extra_info": "@{coalesce(triggerBody()?['ticket_attributes']?['close_code'],triggerBody()?['ticket_attributes']?['on_hold_reason'],triggerBody()?['state'],'')}",
+                            "logicApp": "{{logicappName}}",
+                            "process_type": "@triggerBody()?['process_type']",
+                            "reference_number": "@triggerBody()?['reference_number']",
+                            "runLink": "@{concat('https://portal.azure.com/#view/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/%2Fsubscriptions%2F', parameters('subscriptionId'),'%2FresourceGroups%2F{{resourceGroup}}%2Fproviders%2FMicrosoft.Web%2Fsites%2F{{logicappName}}%2Fworkflows%2F',workflow()?['name'],'/location/West%20Europe/isReadOnly/true/isMonitoringView/true/runId/',workflow()?['run']?['name'])}",
+                            "source": "@action()?['outputs']?['body']?['ResultSets']?[0]?[0]?['source']",
+                            "ticket_number": "@triggerBody()?['ticket_number']"
+                        },
+                        "type": "ServiceProvider"
+                    },
+                    "Transform": {
+                        "inputs": {
+                            "content": {
+                                "baseUrl": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['BaseUrl']",
+                                "environment": "{{environment}}",
+                                "expressions": {
+                                    "nowCet": "@convertFromUtc(utcNow(),'W. Europe Standard Time','yyyy-MM-ddTHH:mm:ss')",
+                                    "transactionID": "@{guid()}"
+                                },
+                                "jsOutput": "@outputs('TransformInput')",
+                                "message": "@removeProperty(triggerBody(), 'attachment')"
+                            },
+                            "map": {
+                                "name": "@body('SPGetRoutingOutboundRest')?['ResultSets']?[0]?[0]?['MapName']",
+                                "source": "LogicApp"
+                            }
+                        },
+                        "kind": "JsonToJson",
+                        "runAfter": {
+                            "TransformInput": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Liquid"
+                    },
+                    "TransformInput": {
+                        "inputs": {
+                            "code": "var triggerData = workflowContext.trigger.outputs.body;\r\nvar input = JSON.parse(workflowContext.actions.SPGetRoutingOutboundRest.outputs.body.ResultSets[0][0].MapInputParamJson);\r\nvar response = {};\r\n\r\nfor(prop in input){\r\n    propVal = input[prop];\r\n    response[prop] = new Function(\"triggerData\", propVal)(triggerData);\r\n}\r\n\r\nreturn response;"
+                        },
+                        "runAfter": {
+                            "SPGetRoutingOutboundRest": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "JavaScriptCode"
+                    }
+                },
+                "runAfter": {},
+                "type": "Scope"
+            },
+            "ScopeFilterFailedAction": {
+                "inputs": {
+                    "from": "@union(createArray(actions('GetSecret'),actions('ResponseData'),actions('ResponseDataOAuth')),result('Scope'))",
+                    "where": "@equals(item()['status'], 'Failed')"
+                },
+                "runAfter": {
+                    "Scope": [
+                        "FAILED",
+                        "TIMEDOUT"
+                    ]
+                },
+                "type": "Query"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "kpnsn-gen-rest-wf": {
+                "inputs": {
+                    "schema": {
+                        "type": "object",
+                        "required": [
+                            "action_type",
+                            "destination",
+                            "ticket_number"
+                        ],
+                        "properties": {
+                            "action": {
+                                "type": "string",
+                                "example": "insert",
+                                "description": "Allowed action values for the API Consumer."
+                            },
+                            "action_type": {
+                                "type": "string",
+                                "example": "New",
+                                "description": "Allowed action_type values for the API Consumer."
+                            },
+                            "destination": {
+                                "type": "string",
+                                "description": "Destination system where the message needs to be routed to.",
+                                "example": "ADE"
+                            },
+                            "process_type": {
+                                "type": "string",
+                                "description": "the process type of the ticket",
+                                "example": "incident"
+                            },
+                            "state": {
+                                "type": "string",
+                                "description": "The state of the ticket",
+                                "example": "New"
+                            },
+                            "ticket_number": {
+                                "type": "string",
+                                "description": "Ticket number in KPN ServiceNow.",
+                                "example": "INC1234"
+                            },
+                            "reference_number": {
+                                "type": "string",
+                                "description": "Reference number in the target system.",
+                                "example": "ABC1234"
+                            },
+                            "ticket_attributes": {
+                                "properties": {},
+                                "additionalProperties": {
+                                    "type": [
+                                        "string",
+                                        "array",
+                                        "object"
+                                    ]
+                                },
+                                "type": "object"
+                            },
+                            "attachment": {
+                                "properties": {
+                                    "action": {
+                                        "description": "Action type for the attachment.",
+                                        "example": "Add",
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "description": "Base64 coded content of the attachment.",
+                                        "example": "IQ0KZW5hYmxlIHNlY3JldCBjaXNjbw0KIQ0KIQ0KIQ0KIQ0KIQ0KIQ0KIQ0Kbm8gaXAgc291cmNlLXJvdXRlDQohDQohDQohDQohDQohDQohDQohDQohDQoNCg0KIQ0KaXAgd1ZXVlIDEwMCBvdCiBwZXJtaXQgdWQogdHJhbnNwb3J0IGlucHV0IHRlbG5ldA0KIQ0KZW5k",
+                                        "type": "string"
+                                    },
+                                    "filename": {
+                                        "description": "Name of the file with file extension.",
+                                        "example": "test.txt",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "content",
+                                    "filename"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "kind": "Http",
+                "operationOptions": "EnableSchemaValidation",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}
