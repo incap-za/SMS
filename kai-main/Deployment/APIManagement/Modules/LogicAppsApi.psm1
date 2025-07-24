@@ -108,21 +108,32 @@ function ImportSwagger{
 			$triggerMethodName = "manual-" + $operationSetting.logicAppTriggerMethod.ToLowerInvariant()
 		}
 		$aseName = "kai-" + $environmentLogicApp + "-shared-ase"
-		$workflowCallRestCall = "/subscriptions/" + $subscriptionId + "/resourceGroups/" + $logicAppResourceGroupName + "/providers/Microsoft.Web/sites/" + $logicAppName +  "/hostruntime/runtime/webhooks/workflow/api/management/workflows/" + $logicAppWorkflowName + "/triggers/" + $triggerMethodName  + "/listCallbackUrl?api-version=2022-09-01"
-		$logicAppCallbackUrl = az rest  --uri=$workflowCallRestCall --method POST | ConvertFrom-Json
-		
-		$logicAppCallbackUrl = $logicAppCallbackUrl.value
-		if(![string]::IsNullOrEmpty($logicAppCallbackUrl))
-		{
-			$logicAppUri  = [System.Uri]($logicAppCallbackUrl);
-			$serviceUrl = "https://" + $logicAppUri.Host + "/" + $logicAppUri.AbsolutePath
-			$accessKeyValue = $logicAppUri.Query.Substring($logicAppUri.Query.LastIndexOf("&sig=") + 5)
-		}
-		else{
-			# return if no callback url found!
-			Write-Host " >>> Unable to retrieve logic app trigger callback url" -ForegroundColor Red
-			return
-		}
+                $workflowCallRestCall = "/subscriptions/" + $subscriptionId + "/resourceGroups/" + $logicAppResourceGroupName + "/providers/Microsoft.Web/sites/" + $logicAppName +  "/hostruntime/runtime/webhooks/workflow/api/management/workflows/" + $logicAppWorkflowName + "/triggers/" + $triggerMethodName  + "/listCallbackUrl?api-version=2022-09-01"
+
+                # retry fetching the callback url as workflow deployment can take some time
+                $logicAppCallbackUrl = $null
+                for($i = 0; $i -lt 5; $i++){
+                        try{
+                                $logicAppCallbackUrl = az rest  --uri=$workflowCallRestCall --method POST | ConvertFrom-Json
+                                $logicAppCallbackUrl = $logicAppCallbackUrl.value
+                                if(![string]::IsNullOrEmpty($logicAppCallbackUrl)) { break }
+                        }catch{
+                                # ignore and retry
+                        }
+                        Start-Sleep -Seconds 15
+                }
+
+                if(![string]::IsNullOrEmpty($logicAppCallbackUrl))
+                {
+                        $logicAppUri  = [System.Uri]($logicAppCallbackUrl);
+                        $serviceUrl = "https://" + $logicAppUri.Host + "/" + $logicAppUri.AbsolutePath
+                        $accessKeyValue = $logicAppUri.Query.Substring($logicAppUri.Query.LastIndexOf("&sig=") + 5)
+                }
+                else{
+                        # return if no callback url found!
+                        Write-Host " >>> Unable to retrieve logic app trigger callback url" -ForegroundColor Red
+                        return
+                }
 		
 		# create/update backend service
 		Write-Host(" - Creating Backend to Logic App Workflow ...")       
