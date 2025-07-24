@@ -17,12 +17,12 @@
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
             "GetTokenFromTokenService": {
-                "type": "Workflow",
+                "type": "Http",
                 "inputs": {
-                    "host": {
-                        "workflow": {
-                            "id": "@{concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/{{resourceGroup}}/providers/Microsoft.Web/sites/{{logicappName}}/workflows/kpnsn-gen-gettoken-wf')}"
-                        }
+                    "method": "POST",
+                    "uri": "https://{{logicappName}}.azurewebsites.net/api/kpnsn-gen-gettoken-wf",
+                    "headers": {
+                        "Content-Type": "application/json"
                     },
                     "body": {
                         "destination": "KPN_SMS"
